@@ -1,25 +1,70 @@
 <div class="homepage">
   <div id="banner" class="border flex flex-col md:flex-row items-center justify-around bg-gray-100 py-16 px-4">
-    <div id="banner-text" class="w-full md:w-1/2 md:text-left mx-auto flex justify-center  text-center   mb-8 md:mb-0">
-      <div class="-mx-0">
-        <h1 class="text-4xl md:text-5xl font-serif text-gray-800 mb-4">The Rogue Razor</h1>
-        <h2 class="text-2xl md:text-3xl font-light text-gray-700 leading-relaxed mb-8">
-          Introducing the <span class="bg-gray-300 px-1">only razor</span> worth <br class="hidden md:inline">
-          using, designed for a close shave.
+    <div id="banner-text" class="w-full md:w-1/2 md:text-left mx-auto flex justify-center text-center mb-8 md:mb-0">
+      <div>
+        <h1 class="text-4xl md:text-5xl font-serif text-gray-800 mb-4">{{ section.settings.heading }}</h1>
+        <h2 class="text-2xl md:text-3xl font-light text-gray-700 leading-relaxed mb-8 w-[350px]  md:w-[450px]">
+          {{ section.settings.subheading }}
         </h2>
-        <button class="bg-orange-600 hover:bg-orange-700 text-white font-bold py-3 px-8 rounded-md shadow-lg transition duration-300 ease-in-out">
-          <a href="{{ routes.collections_url }}">Buy Now</a>
-        </button>
+        {% if section.settings.button_text != blank and section.settings.button_url != blank %}
+          <a href="{{ section.settings.button_url }}" class="bg-orange-600 hover:bg-orange-700 text-white font-bold py-3 px-8 rounded-md shadow-lg transition duration-300 ease-in-out">
+            {{ section.settings.button_text }}
+          </a>
+        {% endif %}
       </div>
     </div>
-    <div class="w-full md:w-1/2 flex justify-center   md:justify-start">
-      <img
-        src="{{ 'rogue-razor-banner.png' | asset_url }}"
-        alt="Rogue Razor Banner"
-        width="390"
-        height="390"
-        class="max-w-xs md:max-w-sm lg:max-w-md xl:max-w-lg mx-0 "
-      >
+    <div class="w-full md:w-1/2 flex justify-center md:justify-start">
+      {% if section.settings.banner_image != blank %}
+        <img
+          src="{{ section.settings.banner_image | image_url: width: 500 }}"
+          alt="Rogue Razor Banner"
+          width="390"
+          height="390"
+          class="max-w-xs md:max-w-sm lg:max-w-md xl:max-w-lg mx-0"
+        >
+      {% endif %}
     </div>
   </div>
 </div>
+
+{% schema %}
+{
+  "name": "Rogue Razor Banner",
+  "settings": [
+    {
+      "type": "text",
+      "id": "heading",
+      "label": "Heading",
+      "default": "The Rogue Razor"
+    },
+    {
+      "type": "textarea",
+      "id": "subheading",
+      "label": "Subheading",
+      "default": "Introducing the <span class=\"bg-gray-300 px-1\">only razor</span> worth <br class=\"hidden md:inline\">using, designed for a close shave."
+    },
+    {
+      "type": "text",
+      "id": "button_text",
+      "label": "Button Text",
+      "default": "Buy Now"
+    },
+    {
+      "type": "url",
+      "id": "button_url",
+      "label": "Button Link",
+      "default": "/collections/all"
+    },
+    {
+      "type": "image_picker",
+      "id": "banner_image",
+      "label": "Banner Image"
+    }
+  ],
+  "presets": [
+    {
+      "name": "Rogue Razor Banner"
+    }
+  ]
+}
+{% endschema %}

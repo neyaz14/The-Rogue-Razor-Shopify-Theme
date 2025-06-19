@@ -1,10 +1,10 @@
 <section class="bg-[#1C685A]  h-12  py-2 text-center">
-  <span class="text-white font-semibold ">
-    {{- section.settings.announcment_text }}
+  <p class="text-white font-semibold overflow-hidden ">
+   <span class="overflow-hidden"> {{ section.settings.announcment_text }} </span>
     {% if section.settings.show_button %}
       <a href="{{ section.settings.button_link }}" class="font-bold underline"> {{ section.settings.btn_text }} </a>
     {% endif %}
-  </span>
+  </p>
 </section>
 
 {% schema %}
