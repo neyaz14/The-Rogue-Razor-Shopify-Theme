@@ -22,6 +22,8 @@
           height="390"
           class="max-w-xs md:max-w-sm lg:max-w-md xl:max-w-lg mx-0 object-contain "
         >
+      {% else %}
+         <img src="{{ 'rogue-razor-banner.png' | asset_url }}" alt="Default Banner" width="390" height="390" />
       {% endif %}
     </div>
   </div>
@@ -58,7 +60,7 @@
     {
       "type": "image_picker",
       "id": "banner_image",
-      "label": "Banner Image"
+      "label": "Banner Image",
     }
   ],
   "presets": [
