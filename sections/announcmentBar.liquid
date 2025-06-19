@@ -1,0 +1,46 @@
+<section class="bg-[#1C685A]  h-12  py-2 text-center">
+  <span class="text-white font-semibold ">
+    {{- section.settings.announcment_text }}
+    {% if section.settings.show_button %}
+      <a href="{{ section.settings.button_link }}" class="font-bold underline"> {{ section.settings.btn_text }} </a>
+    {% endif %}
+  </span>
+</section>
+
+{% schema %}
+{
+  "name": "Announcement Bar",
+  "settings": [
+    {
+      "type": "text",
+      "id": "announcment_text",
+      "label": "Announcement Text",
+      "default": "Free Shipping on orders over $100!"
+    },
+    {
+      "type": "text",
+      "id": "btn_text",
+      "label": "Button Text",
+      "default": "Shop Now"
+    },
+    {
+      "type": "url",
+      "id": "button_link",
+      "label": "Button Link",
+      "default": "/collections/all"
+    },
+
+    {
+      "type": "checkbox",
+      "id": "show_button",
+      "label": "Show Button?",
+      "default": true
+    }
+  ],
+  "presets": [
+    {
+      "name": "Default"
+    }
+  ]
+}
+{% endschema %}

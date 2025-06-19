@@ -1,9 +1,23 @@
 <div class="homepage">
-  
-  <h1 class="text-7xl text-green-700">Welcome to Shopify Theme Development course!</h1>
-
-  <p class="text-6xl">Testing if the tialwind works </p>
-  <p class="text-6xl">Some changes added in the dev  </p>
-  <p class="text-6xl">  changes added in the main work   </p>
-  
+  <div id="banner" class="flex flex-col md:flex-row items-center justify-center bg-gray-100 py-16 px-4">
+    <div id="banner-text" class="w-full md:w-1/2 text-center md:text-left mb-8 md:mb-0">
+      <h1 class="text-5xl md:text-6xl font-serif text-gray-800 mb-4">The Rogue Razor</h1>
+      <h2 class="text-2xl md:text-3xl font-light text-gray-700 leading-relaxed mb-8">
+        Introducing the <span class="bg-gray-300 px-1">only razor</span> worth <br class="hidden md:inline">
+        using, designed for a close shave.
+      </h2>
+      <button class="bg-orange-600 hover:bg-orange-700 text-white font-bold py-3 px-8 rounded-md shadow-lg transition duration-300 ease-in-out">
+        <a href="{{ routes.collections_url }}">Buy Now</a>
+      </button>
+    </div>
+    <div class="w-full md:w-1/2 flex justify-center md:justify-start">
+      <img
+        src="{{ 'rogue-razor-banner.png' | asset_url }}"
+        alt="Rogue Razor Banner"
+        width="400"
+        height="400"
+        class="max-w-xs md:max-w-sm lg:max-w-md xl:max-w-lg rotate-12 -mr-16"
+      >
+    </div>
+  </div>
 </div>
