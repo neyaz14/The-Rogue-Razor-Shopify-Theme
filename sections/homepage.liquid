@@ -1,5 +1,5 @@
 <div class="homepage">
-  <div id="banner" class="border flex flex-col md:flex-row items-center justify-around bg-gray-100 py-16 px-4">
+  <div id="banner" class=" flex flex-col md:flex-row items-center justify-around bg-gray-100 py-16 px-4">
     <div id="banner-text" class="w-full md:w-1/2 md:text-left mx-auto flex justify-center text-center mb-8 md:mb-0">
       <div>
         <h1 class="text-4xl md:text-5xl font-serif text-gray-800 mb-4">{{ section.settings.heading }}</h1>
@@ -7,7 +7,7 @@
           {{ section.settings.subheading }}
         </h2>
         {% if section.settings.button_text != blank and section.settings.button_url != blank %}
-          <a href="{{ section.settings.button_url }}" class="bg-orange-600 hover:bg-orange-700 text-white font-bold py-3 px-8 rounded-md shadow-lg transition duration-300 ease-in-out">
+          <a href="{{ section.settings.button_url }}" class="bg-orange-600 hover:shadow-2xl  text-white font-bold py-3 px-8 rounded-md shadow-lg transition duration-300 ease-in-out">
             {{ section.settings.button_text }}
           </a>
         {% endif %}
