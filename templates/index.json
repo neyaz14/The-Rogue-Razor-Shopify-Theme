@@ -1,11 +1,9 @@
 {
     "sections":{
-        "announcmentBar":{
-            "type":"announcmentBar"
-        },
+        
         "template":{
             "type":"homepage"
         }
     },
-    "order":["announcmentBar" ,"template"]
+    "order":["template"]
 }
