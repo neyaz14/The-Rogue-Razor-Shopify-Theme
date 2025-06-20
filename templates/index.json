@@ -1,9 +1,20 @@
 {
-    "sections":{
-        
-        "template":{
-            "type":"homepage"
+    "sections": {
+        "template": {
+            "type": "homepage",
+            "settings": {
+                "heading": "Experience the Rogue Razor",
+                "subheading": "Designed for precision. Built for comfort. <br> The only razor worth using.",
+                "button_text": "Shop Now",
+                "button_url": "/collections/all",
+                "banner_image": "shopify://your-image-id"
+            }
+        },
+        "allCollectionList":{
+            "type":"home-CollectionList"
         }
     },
-    "order":["template"]
+    "order": [
+        "template","allCollectionList"
+    ]
 }

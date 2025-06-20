@@ -1,0 +1,126 @@
+<!-- Swiper Styles and Script -->
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/swiper/swiper-bundle.min.css">
+<script src="https://cdn.jsdelivr.net/npm/swiper/swiper-bundle.min.js"></script>
+
+<div class="collection-slider-section px-4 py-8 w-[85%] mx-auto ">
+  <div class="flex justify-between items-center mb-4">
+    <h2 class="text-2xl font-bold">{{ section.settings.maintext }}</h2>
+    <a href="{{ routes.all_products_collection_url }}" class="text-sm underline text-gray-600 hover:text-black"
+      >View All</a
+    >
+  </div>
+
+  <div class="relative">
+    <!-- Swiper Container -->
+   
+    <div class="swiper swiper-collections">
+      <div class="swiper-wrapper">
+        {% for block in section.blocks %}
+          {% assign collection = collections[block.settings.collection] %}
+          {% if collection %}
+            <div class="swiper-slide">
+              <a
+                href="{{ collection.url }}"
+                class="block bg-white rounded-xl overflow-hidden shadow-sm hover:shadow-md transition duration-300"
+              >
+                {% if collection.image %}
+                  <img
+                    src="{{ collection.image | image_url: width: 400 }}"
+                    alt="{{ collection.title }}"
+                    class="w-full h-64 object-cover"
+                    width="400"
+                    height="270"
+                  >
+                {% else %}
+                  {% comment %} <div class="w-full h-64 bg-gray-200 flex items-center justify-center text-gray-500">No Image</div> {% endcomment %}
+                  {{
+                    'collection-1'
+                    | placeholder_svg_tag: 'w-full h-64 text-gray-400 bg-gray-100 flex items-center justify-center'
+                  }}
+                {% endif %}
+                <div class="text-center py-2 font-semibold text-[#02392fd6]">{{ collection.title }}</div>
+              </a>
+            </div>
+          {% endif %}
+        {% endfor %}
+      </div>
+
+      {% comment %} <!-- Navigation -->
+      <div class="swiper-button-prev   !text-[#1C685A]"></div>
+      <div class="swiper-button-next   !text-[#1C685A]"></div> {% endcomment %}
+    </div>
+  </div>
+</div>
+
+<script>
+  document.addEventListener('DOMContentLoaded', function () {
+    new Swiper('.swiper-collections', {
+      slidesPerView: 1.2,
+      direction: 'horizontal',
+      loop: true,
+      speed: 500,
+      effect: 'slide',
+
+      speedBetween: 200,
+      autoplay: {
+        delay: 2500,
+        disableOnInteraction: false,
+      },
+      spaceBetween: 16,
+      loop: true,
+      navigation: {
+        nextEl: '.swiper-button-next',
+        prevEl: '.swiper-button-prev',
+      },
+      breakpoints: {
+        640: {
+          slidesPerView: 2.2,
+        },
+        768: {
+          slidesPerView: 3,
+        },
+        1024: {
+          slidesPerView: 4,
+        },
+      },
+    });
+  });
+</script>
+
+{% schema %}
+{
+  "name": "Collection Slider",
+  "settings": [
+    {
+      "type": "text",
+      "id": "maintext",
+      "label": "Main Text",
+      "default": "I'm Looking For..."
+    }
+  ],
+  "blocks": [
+    {
+      "type": "collection",
+      "name": "Collection",
+      "settings": [
+        {
+          "type": "collection",
+          "id": "collection",
+          "label": "Choose Collection"
+        }
+      ]
+    }
+  ],
+  "max_blocks": 20,
+  "presets": [
+    {
+      "name": "Collection Slider"
+    }
+  ]
+}
+{% endschema %}
+
+
+<style>
+
+</style>
