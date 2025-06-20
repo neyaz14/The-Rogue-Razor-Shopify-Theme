@@ -1,39 +1,156 @@
-<section class="bg-[#1C685A]  h-12  py-2 text-center">
-  <p class="text-white font-semibold overflow-hidden ">
-   <span class="overflow-hidden"> {{ section.settings.announcment_text }} </span>
-    {% if section.settings.show_button %}
-      <a href="{{ section.settings.button_link }}" class="font-bold underline"> {{ section.settings.btn_text }} </a>
-    {% endif %}
-  </p>
-</section>
+<!-- Include Swiper CSS -->
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/swiper/swiper-bundle.min.css">
 
+<!-- Include Swiper JS -->
+<script src="https://cdn.jsdelivr.net/npm/swiper/swiper-bundle.min.js"></script>
+
+{% comment %}
+  <section class="bg-[#1C685A]  h-12  py-2 text-center">
+    <p class="text-white font-semibold overflow-hidden ">
+     <span class="overflow-hidden"> {{ section.settings.announcment_text }} </span>
+      {% if section.settings.show_button %}
+        <a href="{{ section.settings.button_link }}" class="font-bold underline"> {{ section.settings.btn_text }} </a>
+      {% endif %}
+    </p>
+  </section>
+{% endcomment %}
+
+<div class="relative bg-[#1C685A] text-white py-2 overflow-hidden">
+  <div class="swiper-container">
+    <div class="swiper-wrapper">
+      <div class="swiper-slide text-center text-sm">
+        <p class="text-white font-semibold overflow-hidden ">
+          <span class="overflow-hidden"> {{ section.settings.announcment_text1 }} </span>
+          {% if section.settings.show_button1 %}
+            <a href="{{ section.settings.button_link1 }}" class="font-bold underline">
+              {{ section.settings.btn_text1 }}
+            </a>
+          {% endif %}
+        </p>
+      </div>
+
+      <div class="swiper-slide text-center text-sm">
+        <p class="text-white font-semibold overflow-hidden ">
+          <span class="overflow-hidden"> {{ section.settings.announcment_text2 }} </span>
+          {% if section.settings.show_button2 %}
+            <a href="{{ section.settings.button_link2 }}" class="font-bold underline">
+              {{ section.settings.btn_text2 }}
+            </a>
+          {% endif %}
+        </p>
+      </div>
+
+      <div class="swiper-slide text-center text-sm">
+        <p class="text-white font-semibold overflow-hidden ">
+          <span class="overflow-hidden"> {{ section.settings.announcment_text3 }} </span>
+          {% if section.settings.show_button3 %}
+            <a href="{{ section.settings.button_link3 }}" class="font-bold underline">
+              {{ section.settings.btn_text3 }}
+            </a>
+          {% endif %}
+        </p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+  const swiper = new Swiper('.swiper-container', {
+    direction: 'horizontal',
+    loop: true,
+    speed: 500,
+    effect: 'fade',
+    fadeEffect: {
+      crossFade: true,
+    },
+    speedBetween: 200,
+    autoplay: {
+      delay: 2000,
+      disableOnInteraction: false,
+    },
+    navigation: {
+      nextEl: '.swiper-button-next',
+      prevEl: '.swiper-button-prev',
+    },
+  });
+</script>
 {% schema %}
 {
   "name": "Announcement Bar",
   "settings": [
     {
       "type": "text",
-      "id": "announcment_text",
-      "label": "Announcement Text",
+      "id": "announcment_text1",
+      "label": "First Announcement Text",
       "default": "Free Shipping on orders over $100!"
     },
     {
       "type": "text",
-      "id": "btn_text",
-      "label": "Button Text",
+      "id": "announcment_text2",
+      "label": "Second Announcement Text",
+      "default": "New Collection Here"
+    },
+    {
+      "type": "text",
+      "id": "announcment_text3",
+      "label": "Third Announcement Text ",
+      "default": "Sales on going upto 50%"
+    },
+    {
+      "type": "text",
+      "id": "btn_text1",
+      "label": "First Slide Button Text",
       "default": "Shop Now"
     },
     {
       "type": "url",
-      "id": "button_link",
-      "label": "Button Link",
+      "id": "button_link1",
+      "label": "First slide Button Link",
       "default": "/collections/all"
     },
 
     {
       "type": "checkbox",
-      "id": "show_button",
-      "label": "Show Button?",
+      "id": "show_button1",
+      "label": "Show First Slide Button?",
+      "default": true
+    },
+    {
+      "type": "text",
+      "id": "btn_text2",
+      "label": "Second Sldie Button Text",
+      "default": "Shop Now"
+    },
+    {
+      "type": "url",
+      "id": "button_link2",
+      "label": "Second Slide Button Link",
+      "default": "/collections/all"
+    },
+
+    {
+      "type": "checkbox",
+      "id": "show_button2",
+      "label": "Show Second Slide Button?",
+      "default": true
+    },
+    {
+      "type": "text",
+      "id": "btn_text3",
+      "label": "Third Slide Button Text",
+      "default": "Shop Now"
+    },
+    {
+      "type": "url",
+      "id": "button_link3",
+      "label": "Third Slide Button Link",
+      "default": "/collections/all"
+    },
+
+    {
+      "type": "checkbox",
+      "id": "show_button3",
+      "label": "Show Third Slide  Button?",
       "default": true
     }
   ],
