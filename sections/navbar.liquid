@@ -1,18 +1,18 @@
 {% assign main_menu_link_list = linklists[section.settings.another_menu].links %}
 
-<div class="bg-green-100">
+<div class="bg-[#f54a00d1]">
   <div class="max-w-7xl mx-auto px-4 sm:px-6 flex items-center justify-between py-4">
     <!-- Mobile & Desktop: Logo -->
     <h1 class="text-xl font-bold truncate">{{ section.settings.header_Title }}</h1>
 
     <!-- Desktop Navigation -->
     <nav class="hidden md:flex space-x-6">
-      {% for link in main_menu_link_list %}
+      {% for link in main_menu_link_list %} 
         {% if link.links != blank %}
           <div class="relative">
             <button
               id="dropdown-toggle"
-              class="text-green-600 hover:text-green-950 text-base font-medium flex items-center"
+              class="text-green-50 hover:text-green-200 text-base font-medium flex items-center"
             >
               {{ link.title }}
               <svg class="ml-1 w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
@@ -32,7 +32,7 @@
                   <li class="w-fit mx-auto text-center">
                     <a
                       href="{{ child.url }}"
-                      class="block px-4 py-2 text-green-800 hover:bg-green-200 hover:text-green-950 rounded-md"
+                      class="block px-4 py-2 text-green-50 hover:bg-green-200 hover:text-green-200 rounded-md"
                     >
                       {{ child.title }}
                     </a>
@@ -43,7 +43,7 @@
           </div>
 
         {% else %}
-          <a href="{{ link.url }}" class="text-green-600 hover:text-green-950 text-base font-medium">
+          <a href="{{ link.url }}" class="text-green-50 hover:text-green-200 text-base font-medium">
             {{ link.title }}
           </a>
         {% endif %}
@@ -52,19 +52,19 @@
 
     <!-- Desktop Cart/Login -->
     <div class="hidden md:flex items-center space-x-4">
-      <a href="{{ routes.cart_url }}" class="text-green-600 hover:text-green-950">Cart</a>
+      <a href="{{ routes.cart_url }}" class="text-green-50 hover:text-green-200">Cart</a>
       {% if shop.customer_accounts_enabled %}
-        <a href="{{ routes.account_login_url }}" class="text-green-600 hover:text-green-950">Login</a>
+        <a href="{{ routes.account_login_url }}" class="text-green-50 hover:text-green-200">Login</a>
       {% endif %}
     </div>
 
     <!-- Mobile Hamburger -->
     <div class="md:hidden flex items-center space-x-4">
-      <a href="{{ routes.cart_url }}" class="text-green-600 hover:text-green-950">🛒</a>
+      <a href="{{ routes.cart_url }}" class="text-green-50 hover:text-green-200">🛒</a>
       {% if shop.customer_accounts_enabled %}
-        <a href="{{ routes.account_login_url }}" class="text-green-600 hover:text-green-950">👤</a>
+        <a href="{{ routes.account_login_url }}" class="text-green-50 hover:text-green-200">👤</a>
       {% endif %}
-      <button id="mobile-menu-toggle" class="text-green-800 text-2xl">☰</button>
+      <button id="mobile-menu-toggle" class="text-green-50 text-2xl">☰</button>
     </div>
   </div>
 
@@ -74,7 +74,7 @@
       {% if link.links != blank %}
         <!-- Dropdown Parent -->
         <div class="mobile-dropdown">
-          <button class="mobile-dropdown-toggle w-full text-left font-semibold text-green-700 flex justify-between items-center">
+          <button class="mobile-dropdown-toggle w-full text-left font-semibold text-green-50 flex justify-between items-center">
             <span>{{ link.title }}</span>
             <svg
               class="w-4 h-4 transform transition-transform"
@@ -90,14 +90,14 @@
           <ul class="mobile-dropdown-menu hidden pl-4 mt-2 space-y-1">
             {% for child in link.links %}
               <li>
-                <a href="{{ child.url }}" class="text-green-600 hover:text-green-900 block">{{ child.title }}</a>
+                <a href="{{ child.url }}" class="text-green-50 hover:text-green-200 block">{{ child.title }}</a>
               </li>
             {% endfor %}
           </ul>
         </div>
       {% else %}
         <!-- Regular Link -->
-        <a href="{{ link.url }}" class="block text-green-700 hover:text-green-900 font-medium">
+        <a href="{{ link.url }}" class="block text-green-50 hover:text-green-200 font-medium">
           {{ link.title }}
         </a>
       {% endif %}
