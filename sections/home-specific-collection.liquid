@@ -1,0 +1,118 @@
+<!-- Swiper CSS -->
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/swiper/swiper-bundle.min.css">
+
+<!-- Swiper JS -->
+<script src="https://cdn.jsdelivr.net/npm/swiper/swiper-bundle.min.js"></script>
+
+{% assign choosed_collection = section.settings.collection.products %}
+
+<section class="my-12 w-[95%] mx-auto">
+  <div class="text-center mb-6">
+    <h2 class="text-3xl font-semibold">{{ section.settings.section_header }}</h2>
+  </div>
+
+  <div class="relative">
+    <div class="swiper mySwiper">
+      <div class="swiper-wrapper">
+        {% for product in choosed_collection %}
+          <div class="swiper-slide w-fit  p-4">
+            <div class=" rounded-lg shadow-sm hover:shadow-md transition duration-300 text-center">
+              <!-- Product Image -->
+              <div class="p-4">
+                <img
+                  src="{{ product.featured_image | image_url: width: 400 }}"
+                  alt="{{ product.title }}"
+                  width="400"
+                  height="250"
+                  class="mx-auto w-auto h-[250px] object-contain hover:scale-110 transform  ease-in-out  transition duration-200"
+                >
+              </div>
+
+              <!-- Product Info -->
+              <div class="px-4 pb-4">
+                <h3 class="text-[15px] leading-snug font-medium mb-1">{{ product.title }}</h3>
+
+                <div class="text-lg font-semibold text-center">
+                  {% if product.compare_at_price > product.price %}
+                    <span class="line-through text-gray-500 text-sm mr-2">
+                      {{ product.compare_at_price | money }}
+                    </span>
+                    <span class="text-red-600">{{ product.price | money }}</span>
+                    <div class="text-xs text-center flex justify-center mx-auto  items-center  p-3 rounded-xl w-fit  mt-1 text-white  bg-purple-800 font-medium">
+                     <p> Save {{ product.compare_at_price | minus: product.price | money }} </p>
+                    </div>
+                  {% else %}
+                    <span>{{ product.price | money }}</span>
+                  {% endif %}
+                </div>
+
+                <button class="mt-4 w-full py-2 text-sm font-bold border-purple-50 rounded-xl  hover:bg-purple-700 hover:text-white transition text-purple-900">
+                  QUICK ADD
+                </button>
+              </div>
+            </div>
+          </div>
+        {% endfor %}
+      </div>
+
+      <!-- Swiper Arrows -->
+      <div class="md:swiper-button-prev !text-white  bg-purple-900"></div>
+      <div class="md:swiper-button-next !text-white  bg-purple-900"></div>
+    </div>
+  </div>
+</section>
+
+<!-- Swiper Init -->
+<script>
+  document.addEventListener('DOMContentLoaded', function () {
+    new Swiper('.mySwiper', {
+      slidesPerView: 4,
+      spaceBetween: 20,
+      navigation: {
+        nextEl: '.swiper-button-next',
+        prevEl: '.swiper-button-prev',
+      },
+      direction: 'horizontal',
+      loop: true,
+      speed: 500,
+      effect: 'slide',
+      
+      speedBetween: 200,
+      autoplay: {
+        delay: 2000,
+        disableOnInteraction: false,
+      },
+      breakpoints: {
+        1024: { slidesPerView: 4 },
+        768: { slidesPerView: 2.5 },
+        480: { slidesPerView: 1.5 },
+        0: { slidesPerView: 1 },
+      },
+    });
+  });
+</script>
+
+{% schema %}
+{
+  "name": "Collection Showcase",
+  "settings": [
+    {
+      "type": "text",
+      "label": "Section Header",
+      "id": "section_header",
+      "default": "Explore New Arrivals"
+    },
+    {
+      "type": "collection",
+      "label": "Select a Collection",
+      "id": "collection"
+    }
+  ],
+  "presets": [
+    {
+      "name": "Collection Showcase",
+      "category": "Collection"
+    }
+  ]
+}
+{% endschema %}
