@@ -7,14 +7,17 @@
                 "subheading": "Designed for precision. Built for comfort. <br> The only razor worth using.",
                 "button_text": "Shop Now",
                 "button_url": "/collections/all",
-                "banner_image": "shopify://your-image-id"
+                "banner_image": null
             }
         },
         "allCollectionList":{
             "type":"home-CollectionList"
-        }
+        },
+        "home-specific-collection":{
+            "type":"home-specific-collection"
+        } 
     },
     "order": [
-        "template","allCollectionList"
+        "template","allCollectionList","home-specific-collection"
     ]
 }
