@@ -1,6 +1,3 @@
-
-
-
 {% comment %}
   ==============================================
   Single Product Section for Home Page
@@ -118,80 +115,161 @@
           </div>
 
           <!-- Product Information Section -->
-     
-            <div class="space-y-6">
-              <!-- Product Header -->
-              <header>
-                {% if product.vendor != blank %}
-                  <p class="text-sm text-gray-500 uppercase tracking-wide font-medium mb-2">
-                    {{ product.vendor }}
-                  </p>
-                {% endif %}
 
-                <h1 class="text-2xl md:text-3xl lg:text-4xl font-bold text-gray-900 leading-tight">
-                  {{ product.title }}
-                </h1>
+          <div class="space-y-6">
+            <!-- Product Header -->
+            <header>
+              {% if product.vendor != blank %}
+                <p class="text-sm text-gray-500 uppercase tracking-wide font-medium mb-2">
+                  {{ product.vendor }}
+                </p>
+              {% endif %}
 
-                <!-- Price Display -->
-                <div class="mt-4" id="price-container">
-                  <div class="flex items-center space-x-2">
-                   
-                  </div>
-                  <!-- Total Price Display -->
-                  <div class="mt-2">
-                    
-                  </div>
+              <h1 class="text-2xl md:text-3xl lg:text-4xl font-bold text-gray-900 leading-tight">
+                {{ product.title }}
+              </h1>
+
+              <!-- Price Display -->
+              <div class="mt-4" id="price-container">
+                <div class="flex items-center space-x-2">
+                  <!-- current-price -->
+                  <span
+                    id="current-price"
+                    class="text-2xl md:text-3xl font-bold text-gray-900 transition-all duration-300"
+                  >
+                    {{ product.selected_or_first_available_variant.price | money }}
+                  </span>
+
+                  <!-- compare-price -->
+                  <span
+                    id="compare-price"
+                    class="text-lg text-gray-500 line-through transition-all duration-300"
+                    style="display: none;"
+                  >
+                    {{ product.selected_or_first_available_variant.compare_at_price | money }}
+                  </span>
+                  <!-- save-badge -->
+                  <span
+                    id="save-badge"
+                    class="bg-red-100 text-red-800 text-xs font-medium px-2 py-1 rounded transition-all duration-300"
+                    style="display: none;"
+                  >
+                    SAVE <span id="save-amount"></span>
+                  </span>
                 </div>
-              </header>
 
-              <!-- Product Form -->
-              <form action="{{ routes.cart_add_url }}" method="post" enctype="multipart/form-data" id="product-form">
-                <!-- Variants Selection -->
-               
+                <!-- Total Price Display -->
+                <!-- id=total-price -->
+                <div class="mt-2">
+                  <span class="text-sm text-gray-600">Total: </span>
+                  <span id="total-price" class="text-lg font-semibold text-gray-900 transition-all duration-300">
+                    {{ product.selected_or_first_available_variant.price | money }}
+                  </span>
+                </div>
+              </div>
+            </header>
 
-                <!-- Quantity Selector -->
+            <!-- Product Form -->
+            <form action="{{ routes.cart_add_url }}" method="post" enctype="multipart/form-data" id="product-form">
+              <!-- Variants Selection -->
+              {% unless product.has_only_default_variant %}
                 
-
-                <!-- Hidden variant ID input -->
-               
-
-                <!-- Stock Status Display -->
-               
-
-                <!-- Add to Cart Buttons -->
-                <div class="space-y-3">
-                  <button
-                    type="button"
-                    onclick="addToCart()"
-                    class="w-full bg-white text-black border-2 border-black py-3 px-6 rounded-md font-medium hover:bg-gray-50 transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2 transform hover:scale-105"
-                    id="add-to-cart-btn"
-                  >
-                    <span class="flex items-center justify-center">
-                      <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 3h2l.4 2M7 13h10l4-8H5.4m0 0L7 13m0 0l-1.5 6M7 13l-1.5 6m0 0h9M17 13v6a2 2 0 01-2 2H9a2 2 0 01-2-2v-6"></path>
-                      </svg>
-                      Add to cart
-                    </span>
-                  </button>
-
-                  <button
-                    type="button"
-                    onclick="buyNow()"
-                    class="w-full bg-black text-white py-3 px-6 rounded-md font-medium hover:bg-gray-800 transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2 transform hover:scale-105"
-                    id="buy-now-btn"
-                  >
-                    <span class="flex items-center justify-center">
-                      <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path>
-                      </svg>
-                      Buy it now
-                    </span>
-                  </button>
+                <div class="space-y-3 m-3">
+                  {% for option in product.options_with_values %}
+                    <fieldset>
+                      <legend class="text-sm font-medium text-gray-900 mb-3">{{ option.name }}</legend>
+                      
+                      <div class="m-1.5">
+                        {% for value in option.values %}
+                          
+                          <input
+                            type="radio"
+                            id="{{ option.name | downcase | replace: ' ', '-' }}-{{ value | downcase | replace: ' ', '-' }}"
+                            name="{{ option.name | downcase }}"
+                            value="{{ value }}"
+                            class="sr-only variant-input"
+                            {% if forloop.first %}
+                              checked
+                            {% endif %}
+                            onchange="updateVariant()"
+                          >
+                          <label
+                            for="{{ option.name | downcase | replace: ' ', '-' }}-{{ value | downcase | replace: ' ', '-' }}"
+                            class="px-4 py-2 border border-gray-300 rounded-md text-sm font-medium cursor-pointer hover:border-gray-400 transition-colors duration-200 {% if forloop.first %}variant-button-active{% endif %}"
+                          >
+                            {{ value }}
+                          </label>
+                        {% endfor %}
+                      </div>
+                    </fieldset>
+                  {% endfor %}
                 </div>
-              </form>
+              {% endunless %}
+              <!-- Quantity Selector -->
 
-              <!-- Additional Actions -->
-              {% comment %} <div class="flex items-center justify-between pt-4 border-t border-gray-200">
+              <!-- Hidden variant ID input -->
+              <!-- Hidden variant ID input -->
+              <input
+                type="hidden"
+                name="id"
+                id="variant-id"
+                value="{{ product.selected_or_first_available_variant.id }}"
+              >
+
+              <!-- Stock Status Display -->
+              <div id="stock-status" class="mb-4">
+                {% if product.selected_or_first_available_variant %}
+                  <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800 transition-all duration-300">
+                    <svg class="w-2 h-2 mr-1" fill="currentColor" viewBox="0 0 8 8">
+                      <circle cx="4" cy="4" r="3"/>
+                    </svg>
+                    In Stock {{ product.selected_or_first_available_variant.inventory_quantity }}
+                  </span>
+                {% else %}
+                  <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800 transition-all duration-300">
+                    <svg class="w-2 h-2 mr-1" fill="currentColor" viewBox="0 0 8 8">
+                      <circle cx="4" cy="4" r="3"/>
+                    </svg>
+                    In Stock {{ product.selected_or_first_available_variant.inventory_quantity }}
+                  </span>
+                {% endif %}
+              </div>
+
+              <!-- Add to Cart Buttons -->
+              <div class="space-y-3">
+                <button
+                  type="button"
+                  onclick="addToCart()"
+                  class="w-full bg-white text-black border-2 border-black py-3 px-6 rounded-md font-medium hover:bg-gray-50 transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2 transform hover:scale-105"
+                  id="add-to-cart-btn"
+                >
+                  <span class="flex items-center justify-center">
+                    <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 3h2l.4 2M7 13h10l4-8H5.4m0 0L7 13m0 0l-1.5 6M7 13l-1.5 6m0 0h9M17 13v6a2 2 0 01-2 2H9a2 2 0 01-2-2v-6"></path>
+                    </svg>
+                    Add to cart
+                  </span>
+                </button>
+
+                <button
+                  type="button"
+                  onclick="buyNow()"
+                  class="w-full bg-black text-white py-3 px-6 rounded-md font-medium hover:bg-gray-800 transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2 transform hover:scale-105"
+                  id="buy-now-btn"
+                >
+                  <span class="flex items-center justify-center">
+                    <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path>
+                    </svg>
+                    Buy it now
+                  </span>
+                </button>
+              </div>
+            </form>
+
+            <!-- Additional Actions -->
+            {% comment %}
+              <div class="flex items-center justify-between pt-4 border-t border-gray-200">
                 <button
                   type="button"
                   onclick="shareProduct()"
@@ -212,9 +290,9 @@
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
                   </svg>
                 </a>
-              </div> {% endcomment %}
-            </div>
-       
+              </div>
+            {% endcomment %}
+          </div>
         </div>
       </article>
     {% else %}
@@ -228,27 +306,102 @@
 
 <!-- JavaScript Functionality -->
 <script>
-  
+      const productVariants=[
+        {% for variant in product.variants %}
+      {
+        id: {{ variant.id }},
+        price: {{ variant.price }},
+        compare_at_price: {{ variant.compare_at_price | default: 0 }},
+        available: {{ variant.available | json }},
+        inventory_quantity: {{ variant.inventory_quantity | default: 0 }},
+        {% for option in product.options_with_values %}
+          {{ option.name | downcase | replace: ' ', '_' }}: "{{ variant.options[forloop.index0] }}",
+        {% endfor %}
+        image: "{{ variant.image | image_url: width:600, height:600, crop: 'center'  }}",
+        formatted_price: "{{ variant.price | money }}",
+        formatted_compare_price: "{{ variant.compare_at_price | money }}",
 
-  {% comment %} 
-   * Change main product image when thumbnail is clicked
-   * @param {string} imageSrc - Source URL of the image
-   * @param {HTMLElement} element - Clicked thumbnail element
-  {% endcomment %}
+      }{% unless forloop.last %},{% endunless %}
+    {% endfor %}
+      ];
+console.log(productVariants)
+      
+      let currentVariant = productVariants[0];
+      let currentQuantity = 1 ;
 
-  function changeMainImage(imageSrc, element) {
-    const mainImage = document.getElementById('main-product-image');
-    mainImage.src = imageSrc;
-    console.log(mainImage)
-    console.log(imageSrc)
+      console.log(productVariants)
+    function updateVariant(){
+      {% comment %} console.log(productVariants); {% endcomment %}
+      const selectedOptions={};
+      document.querySelectorAll('.variant-input:checked').forEach(input=>{
+        selectedOptions[input.name] = input.value;
+      });
+
+
+      const matchingVariant = productVariants.find(variant => {
+          {% comment %} console.log('🔍 Checking variant:', variant);
+          console.log('----------------------------------'); {% endcomment %}
+
+          const selectedKeys = Object.keys(selectedOptions);
+          {% comment %} console.log('✅ Selected option keys:', selectedKeys); {% endcomment %}
+
+          // Check if all selected options match in this variant
+          const allMatch = selectedKeys.every(option => {
+            const variantValue = variant[option.replace(' ', '_')];
+            const selectedValue = selectedOptions[option];
+
+            {% comment %} console.log(`🔑 Option: ${option}`);
+            console.log(`🧪 Comparing: variant[${option.replace(' ', '_')}] = ${variantValue} === ${selectedValue}`); {% endcomment %}
+
+            return variantValue === selectedValue;
+          });
+
+          // Return true if all match — this variant is a match!
+          return allMatch;
+      }); 
+        {% comment %} console.log('matching Variant',matchingVariant)
+        console.log('---------------------') {% endcomment %}
+      console.log('Selected Options' , selectedOptions);
+
     
-    {% comment %}  Update active thumbnail {% endcomment %}
-    document.querySelectorAll('.thumbnail-active').forEach(thumb => {
-      thumb.classList.remove('thumbnail-active');
-    });
-    element.classList.add('thumbnail-active');
-    console.log(mainImage)
-  }
+       console.log('current -->',currentVariant)
+       console.log('matched -->',matchingVariant)
+       if(matchingVariant){
+          currentVariant = matchingVariant;
+          document.getElementById('variant-id').value = matchingVariant.id;
 
 
+          if(matchingVariant.image){
+            const mainImage = document.getElementById('main-product-image');
+            mainImage.style.opacity ='0.7';
+            setTimeout(()=>{
+              console.log(matchingVariant.image);
+              mainImage.src = matchingVariant.image;
+              mainImage.style.opacity = '1'
+            },150)
+            
+          }
+        }
+    }
+
+
+  {% comment %}
+       * Change main product image when thumbnail is clicked
+       * @param {string} imageSrc - Source URL of the image
+       * @param {HTMLElement} element - Clicked thumbnail element
+      {% endcomment %}
+
+      function changeMainImage(imageSrc, element) {
+        const mainImage = document.getElementById('main-product-image');
+        mainImage.src = imageSrc;
+        console.log(mainImage)
+        console.log(imageSrc)
+
+        {% comment %}  Update active thumbnail {% endcomment %}
+        document.querySelectorAll('.thumbnail-active').forEach(thumb => {
+          thumb.classList.remove('thumbnail-active');
+        });
+        element.classList.add('thumbnail-active');
+        console.log(mainImage)
+      }
 </script>
