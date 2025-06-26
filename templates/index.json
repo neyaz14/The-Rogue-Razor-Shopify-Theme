@@ -17,14 +17,12 @@
             "type":"home-specific-collection"
         } ,
        
-        "calude":{
-            "type":"claude"
-        },"SpecificProduct":{
+        "SpecificProduct":{
             "type":"SpecificProduct"
         }, 
         
     },
     "order": [
-        "template","allCollectionList","home-specific-collection","calude","SpecificProduct"
+        "template","allCollectionList","home-specific-collection","SpecificProduct"
     ]
 }

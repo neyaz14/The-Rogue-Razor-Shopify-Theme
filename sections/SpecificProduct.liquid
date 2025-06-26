@@ -1,6 +1,18 @@
+
+
+
+{% comment %}
+  ==============================================
+  Single Product Section for Home Page
+  Responsive product display with variant selection
+  and cart functionality
+  ==============================================
+{% endcomment %}
+
+<!-- Product Section Schema -->
 {% schema %}
 {
-  "name": "My Product Display",
+  "name": "Single Product Display",
   "tag": "section",
   "class": "single-product-section",
   "settings": [
@@ -18,12 +30,13 @@
   ],
   "presets": [
     {
-      "name": "My Product Display"
+      "name": "Single Product Display"
     }
   ]
 }
 {% endschema %}
 
+{% comment %} <!-- CSS Styles with Tailwind --> {% endcomment %}
 <style>
   .product-image-transition {
     transition: all 0.3s ease-in-out;
@@ -48,10 +61,10 @@
   }
 </style>
 
-<section class="border mx-auto w-[90%]">
-  <div>
+<!-- Main Product Section -->
+<section class="bg-gray-50 py-8 md:py-16">
+  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
     <!-- Section Title -->
-
     {% if section.settings.section_title != blank %}
       <header class="text-center mb-8">
         <h2 class="text-3xl md:text-4xl font-bold text-gray-900">
@@ -60,9 +73,9 @@
       </header>
     {% endif %}
 
+    <!-- Product Container -->
     {% assign product = section.settings.featured_product %}
     {% if product != blank %}
-      {% comment %} Product Image Galary {% endcomment %}
       <article class="bg-white rounded-lg shadow-lg overflow-hidden">
         <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 p-6 md:p-8">
           <!-- Product Images Section -->
@@ -103,9 +116,107 @@
               </nav>
             {% endif %}
           </div>
+
+          <!-- Product Information Section -->
+     
+            <div class="space-y-6">
+              <!-- Product Header -->
+              <header>
+                {% if product.vendor != blank %}
+                  <p class="text-sm text-gray-500 uppercase tracking-wide font-medium mb-2">
+                    {{ product.vendor }}
+                  </p>
+                {% endif %}
+
+                <h1 class="text-2xl md:text-3xl lg:text-4xl font-bold text-gray-900 leading-tight">
+                  {{ product.title }}
+                </h1>
+
+                <!-- Price Display -->
+                <div class="mt-4" id="price-container">
+                  <div class="flex items-center space-x-2">
+                   
+                  </div>
+                  <!-- Total Price Display -->
+                  <div class="mt-2">
+                    
+                  </div>
+                </div>
+              </header>
+
+              <!-- Product Form -->
+              <form action="{{ routes.cart_add_url }}" method="post" enctype="multipart/form-data" id="product-form">
+                <!-- Variants Selection -->
+               
+
+                <!-- Quantity Selector -->
+                
+
+                <!-- Hidden variant ID input -->
+               
+
+                <!-- Stock Status Display -->
+               
+
+                <!-- Add to Cart Buttons -->
+                <div class="space-y-3">
+                  <button
+                    type="button"
+                    onclick="addToCart()"
+                    class="w-full bg-white text-black border-2 border-black py-3 px-6 rounded-md font-medium hover:bg-gray-50 transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2 transform hover:scale-105"
+                    id="add-to-cart-btn"
+                  >
+                    <span class="flex items-center justify-center">
+                      <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 3h2l.4 2M7 13h10l4-8H5.4m0 0L7 13m0 0l-1.5 6M7 13l-1.5 6m0 0h9M17 13v6a2 2 0 01-2 2H9a2 2 0 01-2-2v-6"></path>
+                      </svg>
+                      Add to cart
+                    </span>
+                  </button>
+
+                  <button
+                    type="button"
+                    onclick="buyNow()"
+                    class="w-full bg-black text-white py-3 px-6 rounded-md font-medium hover:bg-gray-800 transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2 transform hover:scale-105"
+                    id="buy-now-btn"
+                  >
+                    <span class="flex items-center justify-center">
+                      <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path>
+                      </svg>
+                      Buy it now
+                    </span>
+                  </button>
+                </div>
+              </form>
+
+              <!-- Additional Actions -->
+              {% comment %} <div class="flex items-center justify-between pt-4 border-t border-gray-200">
+                <button
+                  type="button"
+                  onclick="shareProduct()"
+                  class="flex items-center space-x-2 text-gray-600 hover:text-gray-800 transition-colors duration-200"
+                >
+                  <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.367 2.684 3 3 0 00-5.367-2.684z"></path>
+                  </svg>
+                  <span class="text-sm font-medium">Share</span>
+                </button>
+
+                <a
+                  href="{{ product.url }}"
+                  class="flex items-center space-x-2 text-gray-600 hover:text-gray-800 transition-colors duration-200"
+                >
+                  <span class="text-sm font-medium">View full details</span>
+                  <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
+                  </svg>
+                </a>
+              </div> {% endcomment %}
+            </div>
+       
         </div>
       </article>
-
     {% else %}
       <!-- Placeholder when no product is selected -->
       <div class="bg-white rounded-lg shadow-lg p-8 text-center">
@@ -115,21 +226,29 @@
   </div>
 </section>
 
+<!-- JavaScript Functionality -->
 <script>
-   document.addEventListener('DOMContentLoaded', () => {
+  
+
+  {% comment %} 
+   * Change main product image when thumbnail is clicked
+   * @param {string} imageSrc - Source URL of the image
+   * @param {HTMLElement} element - Clicked thumbnail element
+  {% endcomment %}
+
   function changeMainImage(imageSrc, element) {
-     const mainImage = document.getElementById('main-product-image');
-     mainImage.src = imageSrc;
+    const mainImage = document.getElementById('main-product-image');
+    mainImage.src = imageSrc;
+    console.log(mainImage)
+    console.log(imageSrc)
+    
+    {% comment %}  Update active thumbnail {% endcomment %}
+    document.querySelectorAll('.thumbnail-active').forEach(thumb => {
+      thumb.classList.remove('thumbnail-active');
+    });
+    element.classList.add('thumbnail-active');
+    console.log(mainImage)
+  }
 
-     console.log(mainImage)
-     console.log(imageSrc)
-     {% comment %}  Update active thumbnail {% endcomment %}
-     document.querySelectorAll('.thumbnail-active').forEach(thumb => {
-       thumb.classList.remove('thumbnail-active');
-     });
-     element.classList.add('thumbnail-active');
-     console.log(mainImage)
-   }
 
-   })
 </script>
