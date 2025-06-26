@@ -1,0 +1,846 @@
+<script>
+   document.addEventListener('DOMContentLoaded', function() {
+  // Initialize variant buttons
+  updateVariantButtonStyles();
+
+  // Initialize price display
+  updatePriceDisplay();
+
+  // Initialize stock status
+  updateStockStatus();
+
+  // Initialize button states
+  updateButtonStates();
+
+  // Add real-time quantity input listener
+  const quantityInput = document.getElementById('quantity');  
+  quantityInput.addEventListener('input', function() {
+    currentQuantity = parseInt(this.value) || 1; 
+    if (currentQuantity < 1) {
+      currentQuantity = 1;
+      this.value = 1;
+    }
+    updatePriceDisplay();
+  });
+</script>
+
+{% comment %}
+  ==============================================
+  Single Product Section for Home Page
+  Responsive product display with variant selection
+  and cart functionality
+  ==============================================
+{% endcomment %}
+
+<!-- Product Section Schema -->
+{% schema %}
+{
+  "name": "Single Product Display",
+  "tag": "section",
+  "class": "single-product-section",
+  "settings": [
+    {
+      "type": "product",
+      "id": "featured_product",
+      "label": "Select Product"
+    },
+    {
+      "type": "text",
+      "id": "section_title",
+      "label": "Section Title",
+      "default": "Featured Product"
+    }
+  ],
+  "presets": [
+    {
+      "name": "Single Product Display"
+    }
+  ]
+}
+{% endschema %}
+
+{% comment %} <!-- CSS Styles with Tailwind --> {% endcomment %}
+<style>
+  .product-image-transition {
+    transition: all 0.3s ease-in-out;
+  }
+
+  .variant-button-active {
+    @apply ring-2 ring-black bg-black text-white;
+  }
+
+  .quantity-input::-webkit-outer-spin-button,
+  .quantity-input::-webkit-inner-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+  }
+
+  .quantity-input {
+    -moz-appearance: textfield;
+  }
+
+  .thumbnail-active {
+    @apply ring-2 ring-black rounded-4xl border-amber-500;
+  }
+</style>
+
+<!-- Main Product Section -->
+<section class="bg-gray-50 py-8 md:py-16">
+  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+    <!-- Section Title -->
+    {% if section.settings.section_title != blank %}
+      <header class="text-center mb-8">
+        <h2 class="text-3xl md:text-4xl font-bold text-gray-900">
+          {{ section.settings.section_title }}
+        </h2>
+      </header>
+    {% endif %}
+
+    <!-- Product Container -->
+    {% assign product = section.settings.featured_product %}
+    {% if product != blank %}
+      <article class="bg-white rounded-lg shadow-lg overflow-hidden">
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 p-6 md:p-8">
+          <!-- Product Images Section -->
+          <div class="space-y-4">
+            <!-- Main Product Image -->
+            <figure class="aspect-square bg-gray-100 rounded-lg overflow-hidden">
+              <img
+                id="main-product-image"
+                src="{{ product.featured_image | image_url: width:600, height:600, crop: 'center' }}"
+                alt="{{ product.featured_image.alt | default: product.title }}"
+                width="600"
+                height="600"
+                class="w-full h-full object-cover product-image-transition hover:scale-105"
+                loading="lazy"
+              >
+            </figure>
+
+            <!-- Product Thumbnails -->
+            {% if product.images.size > 1 %}
+              <nav class="flex space-x-2 overflow-x-auto pb-2" aria-label="Product images">
+                {% for image in product.images limit: 5 %}
+                  <button
+                    type="button"
+                    class="flex-shrink-0 w-16 h-16 md:w-20 md:h-20 rounded-lg overflow-hidden border-2 border-transparent hover:border-gray-300 transition-all duration-200   {% if forloop.first %}thumbnail-active{% endif %}"
+                    onclick="changeMainImage('{{ image | image_url: width:600, height:600, crop: 'center' }}', this)"
+                    aria-label="View image {{ forloop.index }}"
+                  >
+                    <img
+                      src="{{ image | image_url: width:150, height:150, crop: 'center' }}"
+                      alt="{{ image.alt | default: product.title }}"
+                      width="150"
+                      height="150"
+                      class="w-full h-full object-cover"
+                      loading="lazy"
+                    >
+                  </button>
+                {% endfor %}
+              </nav>
+            {% endif %}
+          </div>
+
+          <!-- Product Information Section -->
+          <div class="space-y-6">
+            <!-- Product Header -->
+            <header>
+              {% if product.vendor != blank %}
+                <p class="text-sm text-gray-500 uppercase tracking-wide font-medium mb-2">
+                  {{ product.vendor }}
+                </p>
+              {% endif %}
+
+              <h1 class="text-2xl md:text-3xl lg:text-4xl font-bold text-gray-900 leading-tight">
+                {{ product.title }}
+              </h1>
+
+              <!-- Price Display -->
+              <div class="mt-4" id="price-container">
+                <div class="flex items-center space-x-2">
+                  <span
+                    id="current-price"
+                    class="text-2xl md:text-3xl font-bold text-gray-900 transition-all duration-300"
+                  >
+                    {{ product.selected_or_first_available_variant.price | money }}
+                  </span>
+                  <span
+                    id="compare-price"
+                    class="text-lg text-gray-500 line-through transition-all duration-300"
+                    style="display: none;"
+                  >
+                    {{ product.selected_or_first_available_variant.compare_at_price | money }}
+                  </span>
+                  <span
+                    id="save-badge"
+                    class="bg-red-100 text-red-800 text-xs font-medium px-2 py-1 rounded transition-all duration-300"
+                    style="display: none;"
+                  >
+                    SAVE <span id="save-amount"></span>
+                  </span>
+                </div>
+                <!-- Total Price Display -->
+                <div class="mt-2">
+                  <span class="text-sm text-gray-600">Total: </span>
+                  <span id="total-price" class="text-lg font-semibold text-gray-900 transition-all duration-300">
+                    {{ product.selected_or_first_available_variant.price | money }}
+                  </span>
+                </div>
+              </div>
+            </header>
+
+            <!-- Product Form -->
+            <form action="{{ routes.cart_add_url }}" method="post" enctype="multipart/form-data" id="product-form">
+              <!-- Variants Selection -->
+              {% unless product.has_only_default_variant %}
+                <div class="space-y-4">
+                  {% for option in product.options_with_values %}
+                    <fieldset>
+                      <legend class="text-sm font-medium text-gray-900 mb-3">
+                        {{ option.name }}
+                      </legend>
+
+                      <div class="flex flex-wrap gap-2">
+                        {% for value in option.values %}
+                          <input
+                            type="radio"
+                            id="{{ option.name | downcase | replace: ' ', '-' }}-{{ value | downcase | replace: ' ', '-' }}"
+                            name="{{ option.name | downcase }}"
+                            value="{{ value }}"
+                            class="sr-only variant-input"
+                            {% if forloop.first %}
+                              checked
+                            {% endif %}
+                            onchange="updateVariant()"
+                          >
+                          <label
+                            for="{{ option.name | downcase | replace: ' ', '-' }}-{{ value | downcase | replace: ' ', '-' }}"
+                            class="px-4 py-2 border border-gray-300 rounded-md text-sm font-medium cursor-pointer hover:border-gray-400 transition-colors duration-200 {% if forloop.first %}variant-button-active{% endif %}"
+                          >
+                            {{ value }}
+                          </label>
+                        {% endfor %}
+                      </div>
+                    </fieldset>
+                  {% endfor %}
+                </div>
+              {% endunless %}
+
+              <!-- Quantity Selector -->
+              <div class="space-y-2">
+                <label for="quantity" class="text-sm font-medium text-gray-900"> Quantity </label>
+                <div class="flex items-center border border-gray-300 rounded-md w-fit">
+                  <button
+                    type="button"
+                    onclick="changeQuantity(-1)"
+                    class="px-3 py-2 text-gray-600 hover:text-gray-800 hover:bg-gray-50 transition-colors duration-200"
+                    aria-label="Decrease quantity"
+                  >
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 12H4"></path>
+                    </svg>
+                  </button>
+
+                  <input
+                    type="number"
+                    id="quantity"
+                    name="quantity"
+                    value="1"
+                    min="1"
+                    class="w-16 px-3 py-2 text-center border-0 quantity-input focus:outline-none focus:ring-0"
+                    readonly
+                  >
+
+                  <button
+                    type="button"
+                    onclick="changeQuantity(1)"
+                    class="px-3 py-2 text-gray-600 hover:text-gray-800 hover:bg-gray-50 transition-colors duration-200"
+                    aria-label="Increase quantity"
+                  >
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
+                    </svg>
+                  </button>
+                </div>
+              </div>
+
+              <!-- Hidden variant ID input -->
+              <input
+                type="hidden"
+                name="id"
+                id="variant-id"
+                value="{{ product.selected_or_first_available_variant.id }}"
+              >
+
+              <!-- Stock Status Display -->
+              <div id="stock-status" class="mb-4">
+                <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800 transition-all duration-300">
+                  <svg class="w-2 h-2 mr-1" fill="currentColor" viewBox="0 0 8 8">
+                    <circle cx="4" cy="4" r="3"/>
+                  </svg>
+                  In Stock
+                </span>
+              </div>
+
+              <!-- Add to Cart Buttons -->
+              <div class="space-y-3">
+                <button
+                  type="button"
+                  onclick="addToCart()"
+                  class="w-full bg-white text-black border-2 border-black py-3 px-6 rounded-md font-medium hover:bg-gray-50 transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2 transform hover:scale-105"
+                  id="add-to-cart-btn"
+                >
+                  <span class="flex items-center justify-center">
+                    <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 3h2l.4 2M7 13h10l4-8H5.4m0 0L7 13m0 0l-1.5 6M7 13l-1.5 6m0 0h9M17 13v6a2 2 0 01-2 2H9a2 2 0 01-2-2v-6"></path>
+                    </svg>
+                    Add to cart
+                  </span>
+                </button>
+
+                <button
+                  type="button"
+                  onclick="buyNow()"
+                  class="w-full bg-black text-white py-3 px-6 rounded-md font-medium hover:bg-gray-800 transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2 transform hover:scale-105"
+                  id="buy-now-btn"
+                >
+                  <span class="flex items-center justify-center">
+                    <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path>
+                    </svg>
+                    Buy it now
+                  </span>
+                </button>
+              </div>
+            </form>
+
+            <!-- Additional Actions -->
+            <div class="flex items-center justify-between pt-4 border-t border-gray-200">
+              <button
+                type="button"
+                onclick="shareProduct()"
+                class="flex items-center space-x-2 text-gray-600 hover:text-gray-800 transition-colors duration-200"
+              >
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.367 2.684 3 3 0 00-5.367-2.684z"></path>
+                </svg>
+                <span class="text-sm font-medium">Share</span>
+              </button>
+
+              <a
+                href="{{ product.url }}"
+                class="flex items-center space-x-2 text-gray-600 hover:text-gray-800 transition-colors duration-200"
+              >
+                <span class="text-sm font-medium">View full details</span>
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
+                </svg>
+              </a>
+            </div>
+          </div>
+        </div>
+      </article>
+    {% else %}
+      <!-- Placeholder when no product is selected -->
+      <div class="bg-white rounded-lg shadow-lg p-8 text-center">
+        <p class="text-gray-500">Please select a product in the theme customizer.</p>
+      </div>
+    {% endif %}
+  </div>
+</section>
+
+<!-- JavaScript Functionality -->
+<script>
+  // Product variants data with enhanced price information
+  const productVariants = [
+    {% for variant in product.variants %}
+      {
+        id: {{ variant.id }},
+        price: {{ variant.price }},
+        compare_at_price: {{ variant.compare_at_price | default: 0 }},
+        available: {{ variant.available | json }},
+        inventory_quantity: {{ variant.inventory_quantity | default: 0 }},
+        {% for option in product.options_with_values %}
+          {{ option.name | downcase | replace: ' ', '_' }}: "{{ variant.options[forloop.index0] }}",
+        {% endfor %}
+        image: "{{ variant.image | img_url: '600x600' }}",
+        formatted_price: "{{ variant.price | money }}",
+        formatted_compare_price: "{{ variant.compare_at_price | money }}"
+      }{% unless forloop.last %},{% endunless %}
+    {% endfor %}
+  ];
+
+  let currentVariant = productVariants[0];
+  let currentQuantity = 1;
+
+  {% comment %} /**
+   * Update all price displays with real-time changes
+   */ {% endcomment %}
+  function updatePriceDisplay() {
+    const currentPriceEl = document.getElementById('current-price');
+    const comparePriceEl = document.getElementById('compare-price');
+    const saveBadgeEl = document.getElementById('save-badge');
+    const saveAmountEl = document.getElementById('save-amount');
+    const totalPriceEl = document.getElementById('total-price');
+    
+    // Animate price change
+    currentPriceEl.style.transform = 'scale(1.1)';
+    currentPriceEl.style.color = currentVariant.compare_at_price > currentVariant.price ? '#dc2626' : '#111827';
+    
+    setTimeout(() => {
+      currentPriceEl.style.transform = 'scale(1)';
+    }, 200);
+    
+    // Update current price
+    currentPriceEl.textContent = currentVariant.formatted_price;
+    
+    // Handle compare at price and save badge
+    if (currentVariant.compare_at_price > currentVariant.price) {
+      comparePriceEl.textContent = currentVariant.formatted_compare_price;
+      comparePriceEl.style.display = 'inline';
+      
+      const saveAmount = currentVariant.compare_at_price - currentVariant.price;
+      saveAmountEl.textContent = formatMoney(saveAmount);
+      saveBadgeEl.style.display = 'inline-block';
+    } else {
+      comparePriceEl.style.display = 'none';
+      saveBadgeEl.style.display = 'none';
+    }
+    
+    // Update total price based on quantity
+    const totalAmount = currentVariant.price * currentQuantity;
+    totalPriceEl.textContent = formatMoney(totalAmount);
+    
+    // Animate total price
+    totalPriceEl.style.transform = 'scale(1.05)';
+    setTimeout(() => {
+      totalPriceEl.style.transform = 'scale(1)';
+    }, 150);
+  }
+{% comment %}  {% endcomment %}
+  {% comment %} /**
+   * Update stock status display
+   */ {% endcomment %}
+  function updateStockStatus() {
+    const stockStatusEl = document.getElementById('stock-status');
+    const stockSpan = stockStatusEl.querySelector('span');
+    
+    if (currentVariant.available) {
+      if (currentVariant.inventory_quantity > 10) {
+        stockSpan.className = 'inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800 transition-all duration-300';
+        stockSpan.innerHTML = `
+          <svg class="w-2 h-2 mr-1" fill="currentColor" viewBox="0 0 8 8">
+            <circle cx="4" cy="4" r="3"/>
+          </svg>
+          In Stock
+        `;
+      } else if (currentVariant.inventory_quantity > 0) {
+        stockSpan.className = 'inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800 transition-all duration-300';
+        stockSpan.innerHTML = `
+          <svg class="w-2 h-2 mr-1" fill="currentColor" viewBox="0 0 8 8">
+            <circle cx="4" cy="4" r="3"/>
+          </svg>
+          Low Stock (${currentVariant.inventory_quantity} left)
+        `;
+      }
+    } else {
+      stockSpan.className = 'inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800 transition-all duration-300';
+      stockSpan.innerHTML = `
+        <svg class="w-2 h-2 mr-1" fill="currentColor" viewBox="0 0 8 8">
+          <circle cx="4" cy="4" r="3"/>
+        </svg>
+        Out of Stock
+      `;
+    }
+  }
+
+  {% comment %} /**
+   * Format money amount (simple version)
+   */ {% endcomment %}
+  function formatMoney(cents) {
+    return '{{ shop.money_format }}'.replace(/\{\{\s*amount\s*\}\}/, (cents / 100).toFixed(2));
+  }
+
+  {% comment %} /**
+   * Change main product image when thumbnail is clicked
+   * @param {string} imageSrc - Source URL of the image
+   * @param {HTMLElement} element - Clicked thumbnail element
+   */ {% endcomment %}
+
+  function changeMainImage(imageSrc, element) {
+    const mainImage = document.getElementById('main-product-image');
+    mainImage.src = imageSrc;
+    console.log(mainImage)
+    console.log(imageSrc)
+    
+    {% comment %}  Update active thumbnail {% endcomment %}
+    document.querySelectorAll('.thumbnail-active').forEach(thumb => {
+      thumb.classList.remove('thumbnail-active');
+    });
+    element.classList.add('thumbnail-active');
+    console.log(mainImage)
+  }
+
+
+{% comment %} 
+  /**
+   * Update product variant based on selected options with real-time UI updates
+   */ {% endcomment %}
+
+
+
+  function updateVariant() {
+    const selectedOptions = {};
+    
+    // Get all selected variant options
+    document.querySelectorAll('.variant-input:checked').forEach(input => {
+      selectedOptions[input.name] = input.value;
+    });
+
+    // Find matching variant
+    const matchingVariant = productVariants.find(variant => {
+      return Object.keys(selectedOptions).every(optionName => {
+        return variant[optionName.replace(' ', '_')] === selectedOptions[optionName];
+      });
+    });
+
+    if (matchingVariant) {
+      currentVariant = matchingVariant;
+      
+      // Update variant ID in form
+      document.getElementById('variant-id').value = matchingVariant.id;
+      
+      // Update prices with animation
+      updatePriceDisplay();
+      
+      // Update stock status
+      updateStockStatus();
+      
+      // Update variant image if available with smooth transition
+      if (matchingVariant.image) {
+        const mainImage = document.getElementById('main-product-image');
+        mainImage.style.opacity = '0.7';
+        setTimeout(() => {
+          mainImage.src = matchingVariant.image;
+          mainImage.style.opacity = '1';
+        }, 150);
+      }
+      
+      // Update button states based on availability
+      updateButtonStates();
+    }
+
+    // Update variant button styles
+    updateVariantButtonStyles();
+  }
+
+  {% comment %} /**
+   * Update button states with smooth animations
+   */ {% endcomment %}
+
+
+
+  function updateButtonStates() {
+    const addToCartBtn = document.getElementById('add-to-cart-btn');
+    const buyNowBtn = document.getElementById('buy-now-btn');
+    
+    if (currentVariant.available) {
+      addToCartBtn.disabled = false;
+      buyNowBtn.disabled = false;
+      addToCartBtn.classList.remove('opacity-50', 'cursor-not-allowed');
+      buyNowBtn.classList.remove('opacity-50', 'cursor-not-allowed');
+      
+      addToCartBtn.innerHTML = `
+        <span class="flex items-center justify-center">
+          <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 3h2l.4 2M7 13h10l4-8H5.4m0 0L7 13m0 0l-1.5 6M7 13l-1.5 6m0 0h9M17 13v6a2 2 0 01-2 2H9a2 2 0 01-2-2v-6"></path>
+          </svg>
+          Add to cart
+        </span>
+      `;
+      
+      buyNowBtn.innerHTML = `
+        <span class="flex items-center justify-center">
+          <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path>
+          </svg>
+          Buy it now
+        </span>
+      `;
+    } else {
+      addToCartBtn.disabled = true;
+      buyNowBtn.disabled = true;
+      addToCartBtn.classList.add('opacity-50', 'cursor-not-allowed');
+      buyNowBtn.classList.add('opacity-50', 'cursor-not-allowed');
+      
+      addToCartBtn.innerHTML = `
+        <span class="flex items-center justify-center">
+          <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+          </svg>
+          Sold out
+        </span>
+      `;
+      
+      buyNowBtn.innerHTML = `
+        <span class="flex items-center justify-center">
+          <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+          </svg>
+          Sold out
+        </span>
+      `;
+    }
+  }
+{% comment %} 
+  /**
+   * Update visual styles for variant buttons with enhanced animations
+   */ {% endcomment %}
+
+
+
+  function updateVariantButtonStyles() {
+    document.querySelectorAll('.variant-input').forEach(input => {
+      const label = document.querySelector(`label[for="${input.id}"]`);
+      
+      // Add transition effect
+      label.style.transition = 'all 0.2s ease-in-out';
+      
+      if (input.checked) {
+        label.classList.add('variant-button-active');
+        // Add pulse effect
+        label.style.transform = 'scale(1.02)';
+        setTimeout(() => {
+          label.style.transform = 'scale(1)';
+        }, 100);
+      } else {
+        label.classList.remove('variant-button-active');
+      }
+    });
+  }
+{% comment %} 
+  /**
+   * Change product quantity with real-time price updates
+   * @param {number} change - Positive or negative number to change quantity
+   */ {% endcomment %}
+  function changeQuantity(change) {
+    const quantityInput = document.getElementById('quantity');
+    let newQuantity = parseInt(quantityInput.value) + change;
+    
+    // Ensure quantity doesn't go below 1
+    if (newQuantity < 1) {
+      newQuantity = 1;
+    }
+    
+    // Update quantity with animation
+    quantityInput.style.transform = 'scale(1.1)';
+    quantityInput.style.background = '#f3f4f6';
+    
+    setTimeout(() => {
+      quantityInput.value = newQuantity;
+      currentQuantity = newQuantity;
+      quantityInput.style.transform = 'scale(1)';
+      quantityInput.style.background = 'white';
+      
+      // Update total price in real-time
+      updatePriceDisplay();
+    }, 100);
+  }
+
+  {% comment %} /**
+   * Add product to cart via AJAX with enhanced UI feedback
+   */ {% endcomment %}
+
+
+
+  async function addToCart() {
+    if (!currentVariant.available) {
+      showNotification('This product is currently sold out.', 'error');
+      return;
+    }
+
+    const addToCartBtn = document.getElementById('add-to-cart-btn');
+    const originalContent = addToCartBtn.innerHTML;
+    
+    // Show loading state
+    addToCartBtn.disabled = true;
+    addToCartBtn.innerHTML = `
+      <span class="flex items-center justify-center">
+        <svg class="animate-spin -ml-1 mr-3 h-5 w-5 text-black" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+          <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+          <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+        </svg>
+        Adding to cart...
+      </span>
+    `;
+
+    const formData = {
+      'items': [{
+        'id': currentVariant.id,
+        'quantity': currentQuantity
+      }]
+    };
+
+    try {
+      const response = await fetch('/cart/add.js', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(formData)
+      });
+
+      if (response.ok) {
+        const result = await response.json();
+        
+        // Show success state
+        addToCartBtn.innerHTML = `
+          <span class="flex items-center justify-center">
+            <svg class="w-5 h-5 mr-2 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+            </svg>
+            Added to cart!
+          </span>
+        `;
+        
+        // Show success notification with product details
+        showNotification(`${currentQuantity}x ${result.items[0].title} added to cart successfully!`, 'success');
+        
+        // Update cart count
+        updateCartCount();
+        
+        // Reset button after 2 seconds
+        setTimeout(() => {
+          addToCartBtn.innerHTML = originalContent;
+          addToCartBtn.disabled = false;
+        }, 2000);
+        
+      } else {
+        throw new Error('Failed to add to cart');
+      }
+    } catch (error) {
+      console.error('Error adding to cart:', error);
+      
+      // Show error state
+      addToCartBtn.innerHTML = `
+        <span class="flex items-center justify-center">
+          <svg class="w-5 h-5 mr-2 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+          </svg>
+          Failed to add
+        </span>
+      `;
+      
+      showNotification('Failed to add product to cart. Please try again.', 'error');
+      
+      // Reset button after 2 seconds
+      setTimeout(() => {
+        addToCartBtn.innerHTML = originalContent;
+        addToCartBtn.disabled = false;
+      }, 2000);
+    }
+  }
+
+  {% comment %} /**
+   * Buy now functionality with enhanced feedback
+   */ {% endcomment %}
+
+
+
+  async function buyNow() {
+    const buyNowBtn = document.getElementById('buy-now-btn');
+    const originalContent = buyNowBtn.innerHTML;
+    
+    // Show loading state
+    buyNowBtn.innerHTML = `
+      <span class="flex items-center justify-center">
+        <svg class="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+          <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+          <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+        </svg>
+        Processing...
+      </span>
+    `;
+    
+    await addToCart();
+    
+    // Show redirect message
+    buyNowBtn.innerHTML = `
+      <span class="flex items-center justify-center">
+        <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7l5 5m0 0l-5 5m5-5H6"></path>
+        </svg>
+        Redirecting to cart...
+      </span>
+    `;
+    
+    // Redirect to cart page after adding
+    setTimeout(() => {
+      window.location.href = '/cart';
+    }, 1000);
+  }
+
+  {% comment %} /**
+   * Share product functionality
+   */ {% endcomment %}
+
+
+
+  function shareProduct() {
+    if (navigator.share) {
+      navigator.share({
+        title: '{{ product.title | escape }}',
+        text: 'Check out this product!',
+        url: window.location.href
+      });
+    } else {
+      // Fallback: copy URL to clipboard
+      navigator.clipboard.writeText(window.location.href).then(() => {
+        showNotification('Product URL copied to clipboard!', 'success');
+      });
+    }
+  }
+
+  {% comment %} /**
+   * Show notification message
+   * @param {string} message - Message to display
+   * @param {string} type - Type of notification (success, error)
+   */ {% endcomment %}
+
+
+  function showNotification(message, type) {
+    // Create notification element
+    const notification = document.createElement('div');
+    notification.className = `fixed top-4 right-4 z-50 px-4 py-2 rounded-md text-white font-medium ${
+      type === 'success' ? 'bg-green-500' : 'bg-red-500'
+    }`;
+    notification.textContent = message;
+    
+    document.body.appendChild(notification);
+    
+    // Remove notification after 3 seconds
+    setTimeout(() => {
+      notification.remove();
+    }, 3000);
+  }
+
+  {% comment %} /**
+   * Update cart count in navigation (if cart count element exists)
+   */ {% endcomment %}
+
+  function updateCartCount() {
+    fetch('/cart.js')
+      .then(response => response.json())
+      .then(cart => {
+        const cartCountElements = document.querySelectorAll('.cart-count');
+        cartCountElements.forEach(element => {
+          element.textContent = cart.item_count;
+        });
+      })
+      .catch(error => console.error('Error updating cart count:', error));
+  }
+
+  {% comment %} // Initialize variant buttons on page load {% endcomment %}
+  document.addEventListener('DOMContentLoaded', function() {
+    updateVariantButtonStyles();
+  });
+</script>

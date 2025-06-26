@@ -1,0 +1,135 @@
+{% schema %}
+{
+  "name": "My Product Display",
+  "tag": "section",
+  "class": "single-product-section",
+  "settings": [
+    {
+      "type": "product",
+      "id": "featured_product",
+      "label": "Select Product"
+    },
+    {
+      "type": "text",
+      "id": "section_title",
+      "label": "Section Title",
+      "default": "Featured Product"
+    }
+  ],
+  "presets": [
+    {
+      "name": "My Product Display"
+    }
+  ]
+}
+{% endschema %}
+
+<style>
+  .product-image-transition {
+    transition: all 0.3s ease-in-out;
+  }
+
+  .variant-button-active {
+    @apply ring-2 ring-black bg-black text-white;
+  }
+
+  .quantity-input::-webkit-outer-spin-button,
+  .quantity-input::-webkit-inner-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+  }
+
+  .quantity-input {
+    -moz-appearance: textfield;
+  }
+
+  .thumbnail-active {
+    @apply ring-2 ring-black rounded-4xl border-amber-500;
+  }
+</style>
+
+<section class="border mx-auto w-[90%]">
+  <div>
+    <!-- Section Title -->
+
+    {% if section.settings.section_title != blank %}
+      <header class="text-center mb-8">
+        <h2 class="text-3xl md:text-4xl font-bold text-gray-900">
+          {{ section.settings.section_title }}
+        </h2>
+      </header>
+    {% endif %}
+
+    {% assign product = section.settings.featured_product %}
+    {% if product != blank %}
+      {% comment %} Product Image Galary {% endcomment %}
+      <article class="bg-white rounded-lg shadow-lg overflow-hidden">
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 p-6 md:p-8">
+          <!-- Product Images Section -->
+          <div class="space-y-4">
+            <!-- Main Product Image -->
+            <figure class="aspect-square bg-gray-100 rounded-lg overflow-hidden">
+              <img
+                id="main-product-image"
+                src="{{ product.featured_image | image_url: width:600, height:600, crop: 'center' }}"
+                alt="{{ product.featured_image.alt | default: product.title }}"
+                width="600"
+                height="600"
+                class="w-full h-full object-cover product-image-transition hover:scale-105"
+                loading="lazy"
+              >
+            </figure>
+
+            <!-- Product Thumbnails -->
+            {% if product.images.size > 1 %}
+              <nav class="flex space-x-2 overflow-x-auto pb-2" aria-label="Product images">
+                {% for image in product.images limit: 5 %}
+                  <button
+                    type="button"
+                    class="flex-shrink-0 w-16 h-16 md:w-20 md:h-20 rounded-lg overflow-hidden border-2 border-transparent hover:border-gray-300 transition-all duration-200   {% if forloop.first %}thumbnail-active{% endif %}"
+                    onclick="changeMainImage('{{ image | image_url: width:600, height:600, crop: 'center' }}', this)"
+                    aria-label="View image {{ forloop.index }}"
+                  >
+                    <img
+                      src="{{ image | image_url: width:150, height:150, crop: 'center' }}"
+                      alt="{{ image.alt | default: product.title }}"
+                      width="150"
+                      height="150"
+                      class="w-full h-full object-cover"
+                      loading="lazy"
+                    >
+                  </button>
+                {% endfor %}
+              </nav>
+            {% endif %}
+          </div>
+        </div>
+      </article>
+
+    {% else %}
+      <!-- Placeholder when no product is selected -->
+      <div class="bg-white rounded-lg shadow-lg p-8 text-center">
+        <p class="text-gray-500">Please select a product in the theme customizer.</p>
+      </div>
+    {% endif %}
+  </div>
+</section>
+
+<script>
+   document.addEventListener('DOMContentLoaded', () => {
+  function changeMainImage(imageSrc, element) {
+     const mainImage = document.getElementById('main-product-image');
+     mainImage.src = imageSrc;
+
+     console.log(mainImage)
+     console.log(imageSrc)
+     {% comment %}  Update active thumbnail {% endcomment %}
+     document.querySelectorAll('.thumbnail-active').forEach(thumb => {
+       thumb.classList.remove('thumbnail-active');
+     });
+     element.classList.add('thumbnail-active');
+     console.log(mainImage)
+   }
+
+   })
+</script>
