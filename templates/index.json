@@ -15,9 +15,14 @@
         },
         "home-specific-collection":{
             "type":"home-specific-collection"
-        } 
+        } ,
+       
+        "SpecificProduct":{
+            "type":"SpecificProduct"
+        }, 
+        
     },
     "order": [
-        "template","allCollectionList","home-specific-collection"
+        "template","allCollectionList","home-specific-collection","SpecificProduct"
     ]
 }

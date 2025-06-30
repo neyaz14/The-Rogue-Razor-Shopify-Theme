@@ -1,0 +1,96 @@
+{% assign product = all_products[section.settings.product] %}
+<section class="bg-white py-12 px-4 sm:px-6 lg:px-8 mx-auto w-[85%] border">
+  <div class="max-w-7xl mx-auto grid grid-cols-1 md:grid-cols-2 gap-8 items-start">
+    <!-- Image Gallery (Thumbnails + Main Image) -->
+    <div class="flex flex-col md:flex-row gap-4">
+      <!-- Thumbnails Sidebar -->
+      <div class="flex md:flex-col gap-2 overflow-x-auto   md:overflow-y-auto max-h-[400px] md:max-h-[500px]">
+        {% for image in product.images %}
+          <img
+            src="{{ image | image_url: width: 100 }}"
+            alt="Thumbnail {{ forloop.index }}"
+            width="100"
+            height="100"
+            class="w-20 h-20 object-cover border border-gray-300 rounded-lg cursor-pointer hover:ring-2 hover:ring-black transition"
+            onclick="document.getElementById('main-image-{{ section.id }}').src = '{{ image | image_url: width: 800 }}'"
+          >
+        {% endfor %}
+      </div>
+
+      <!-- Main Product Image -->
+      <div class="flex-1">
+        <img
+          id="main-image-{{ section.id }}"
+          src="{{ product.featured_image | image_url: width: 800 }}"
+          alt="{{ product.title | escape }}"
+          width="800"
+          height="800"
+          class="w-full h-auto rounded-2xl border border-gray-200 shadow-sm object-cover"
+        >
+      </div>
+    </div>
+
+    <!-- Product Info + Add to Cart -->
+    <div class="space-y-6">
+      <h1 class="text-3xl font-semibold text-gray-900">
+        {{ product.title }}
+      </h1>
+
+      <p class="text-xl text-gray-700">
+        {{ product.price | money }}
+      </p>
+      <div>
+        {% if product.variants.size >1  %}
+            <div class="flex gap-3">
+                {% for variants in product.variants %}
+                    <p class="border rounded-2xl py-1 px-1 "  
+                        
+                        value={{ variants.id }}>{{ variants.title }} <span>{{ variants.price }} </span>  </p>
+                {% endfor %}
+                
+            </div>
+        {% endif %}
+      </div>
+
+      <form method="post" action="{{ routes.cart_add_url }}" class="space-y-4">
+        <input type="hidden" name="id" value="{{ product.variants.first.id }}">
+
+        <label for="quantity-{{ section.id }}" class="block text-sm font-medium text-gray-700"> Quantity </label>
+        <input
+          type="number"
+          name="quantity"
+          id="quantity-{{ section.id }}"
+          min="1"
+          value="1"
+          class="w-24 px-3 py-2 border border-gray-300 rounded-lg shadow-sm focus:ring-2 focus:ring-black focus:outline-none text-sm"
+        >
+
+        <button
+          type="submit"
+          class="inline-flex items-center justify-center px-6 py-3 bg-black text-white text-sm font-medium rounded-lg shadow hover:bg-gray-900 transition duration-200"
+        >
+          Add to Cart
+        </button>
+      </form>
+    </div>
+  </div>
+</section>
+
+{% schema %}
+{
+  "name": "Product Feature",
+  "tag": "section",
+  "settings": [
+    {
+      "type": "product",
+      "id": "product",
+      "label": "Choose Product"
+    }
+  ],
+  "presets": [
+    {
+      "name": "Product Feature "
+    }
+  ]
+}
+{% endschema %}

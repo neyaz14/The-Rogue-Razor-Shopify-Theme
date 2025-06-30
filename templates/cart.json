@@ -1,0 +1,8 @@
+{
+    "sections":{
+        "drawer":{
+            "type":"cart-drawer"
+        }
+    },
+    "order":["drawer"]
+}  
