@@ -173,15 +173,13 @@
             <form action="{{ routes.cart_add_url }}" method="post" enctype="multipart/form-data" id="product-form">
               <!-- Variants Selection -->
               {% unless product.has_only_default_variant %}
-                
                 <div class="space-y-3 m-3">
                   {% for option in product.options_with_values %}
                     <fieldset>
                       <legend class="text-sm font-medium text-gray-900 mb-3">{{ option.name }}</legend>
-                      
+
                       <div class="m-1.5">
                         {% for value in option.values %}
-                          
                           <input
                             type="radio"
                             id="{{ option.name | downcase | replace: ' ', '-' }}-{{ value | downcase | replace: ' ', '-' }}"
@@ -206,6 +204,42 @@
                 </div>
               {% endunless %}
               <!-- Quantity Selector -->
+              <div class="space-y-2">
+                <label for="quantity" class="text-sm font-medium text-gray-900"> Quantity </label>
+                <div class="flex items-center border border-gray-300 rounded-md w-fit">
+                  <button
+                    type="button"
+                    onclick="changeQuantity(-1)"
+                    class="px-3 py-2 text-gray-600 hover:text-gray-800 hover:bg-gray-50 transition-colors duration-200"
+                    aria-label="Decrease quantity"
+                  >
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 12H4"></path>
+                    </svg>
+                  </button>
+
+                  <input
+                    type="number"
+                    id="quantity"
+                    name="quantity"
+                    value="1"
+                    min="1"
+                    class="w-16 px-3 py-2 text-center border-0 quantity-input focus:outline-none focus:ring-0"
+                    readonly
+                  >
+
+                  <button
+                    type="button"
+                    onclick="changeQuantity(1)"
+                    class="px-3 py-2 text-gray-600 hover:text-gray-800 hover:bg-gray-50 transition-colors duration-200"
+                    aria-label="Increase quantity"
+                  >
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
+                    </svg>
+                  </button>
+                </div>
+              </div>
 
               <!-- Hidden variant ID input -->
               <!-- Hidden variant ID input -->
@@ -220,16 +254,10 @@
               <div id="stock-status" class="mb-4">
                 {% if product.selected_or_first_available_variant %}
                   <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800 transition-all duration-300">
-                    <svg class="w-2 h-2 mr-1" fill="currentColor" viewBox="0 0 8 8">
-                      <circle cx="4" cy="4" r="3"/>
-                    </svg>
                     In Stock {{ product.selected_or_first_available_variant.inventory_quantity }}
                   </span>
                 {% else %}
                   <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800 transition-all duration-300">
-                    <svg class="w-2 h-2 mr-1" fill="currentColor" viewBox="0 0 8 8">
-                      <circle cx="4" cy="4" r="3"/>
-                    </svg>
                     In Stock {{ product.selected_or_first_available_variant.inventory_quantity }}
                   </span>
                 {% endif %}
@@ -324,34 +352,38 @@
       }{% unless forloop.last %},{% endunless %}
     {% endfor %}
       ];
-console.log(productVariants)
       
       let currentVariant = productVariants[0];
       let currentQuantity = 1 ;
 
-      console.log(productVariants)
+   
+
+
+
     function updateVariant(){
-      {% comment %} console.log(productVariants); {% endcomment %}
+       // Build selected options object
       const selectedOptions={};
       document.querySelectorAll('.variant-input:checked').forEach(input=>{
         selectedOptions[input.name] = input.value;
-      });
+      }); // this selectedOptions come from direct the element , it has the object of that varient value and name that has been clicked;
 
 
+       // Try to find a matching variant - productVaiants vs selectedOptions 
       const matchingVariant = productVariants.find(variant => {
-          {% comment %} console.log('🔍 Checking variant:', variant);
-          console.log('----------------------------------'); {% endcomment %}
-
+        console.log('productVarients array --', variant)
+         
           const selectedKeys = Object.keys(selectedOptions);
-          {% comment %} console.log('✅ Selected option keys:', selectedKeys); {% endcomment %}
-
-          // Check if all selected options match in this variant
+          console.log('selected key options', selectedKeys)
+          // Oject.keys() = built in js function , which return property name in an array
+         
+          
           const allMatch = selectedKeys.every(option => {
+            console.log('option of selected key', option)
+            // this varientValue come from the productVariant array , it match that array's variant option name with -- selectedKey option name 
             const variantValue = variant[option.replace(' ', '_')];
+            console.log( variantValue)
             const selectedValue = selectedOptions[option];
-
-            {% comment %} console.log(`🔑 Option: ${option}`);
-            console.log(`🧪 Comparing: variant[${option.replace(' ', '_')}] = ${variantValue} === ${selectedValue}`); {% endcomment %}
+            console.log( selectedValue)
 
             return variantValue === selectedValue;
           });
@@ -359,17 +391,10 @@ console.log(productVariants)
           // Return true if all match — this variant is a match!
           return allMatch;
       }); 
-        {% comment %} console.log('matching Variant',matchingVariant)
-        console.log('---------------------') {% endcomment %}
-      console.log('Selected Options' , selectedOptions);
-
-    
-       console.log('current -->',currentVariant)
-       console.log('matched -->',matchingVariant)
-       if(matchingVariant){
+        
+        if(matchingVariant){
           currentVariant = matchingVariant;
           document.getElementById('variant-id').value = matchingVariant.id;
-
 
           if(matchingVariant.image){
             const mainImage = document.getElementById('main-product-image');
@@ -382,8 +407,98 @@ console.log(productVariants)
             
           }
         }
+
+        updatePriceDisplay();
+        // TODO : Update Stock Status        updateStockStatus()
+        updateStockStatus();
+        
+        // TODO : Update Button States        updateButtonStates()
+        // TODO : Update VarientButton Styles updateVariantButtonStyles()
+ 
+
     }
 
+    function updateStockStatus(){
+      const stockStatusEl = document.getElementById('stock-status');
+      const stockSpan = stockStatusEl.querySelector('span');
+
+
+
+    
+    }
+
+    // TODO 
+    function updateVariantButtonStyles() {
+        document.querySelectorAll('.variant-input').forEach(input => {
+            const label = document.querySelector(`label[for="${input.id}"]`);
+            
+            // Add transition effect
+            label.style.transition = 'all 0.2s ease-in-out';
+            
+            if (input.checked) {
+              label.classList.add('variant-button-active');
+              // Add pulse effect
+              label.style.transform = 'scale(1.02)';
+              setTimeout(() => {
+                label.style.transform = 'scale(1)';
+              }, 100);
+            } else {
+              label.classList.remove('variant-button-active');
+            }
+        });
+    }
+
+
+    function changeQuantity(change){
+      const quantityInput = document.getElementById('quantity');
+      let newQuantity = parseInt(quantityInput.value)+ change;
+
+      // ensuring if the quantity does not go below 1
+      if(newQuantity <1){
+        newQuantity = 1;
+      };
+
+      quantityInput.value = newQuantity;
+      currentQuantity = newQuantity;
+
+      updatePriceDisplay();
+    } 
+
+
+    {% comment %} Update Price Display  {% endcomment %}
+    function updatePriceDisplay(){
+      const currentPriceEl = document.getElementById('current-price');
+      const comparePriceEl = document.getElementById('compare-price');
+      const saveBadgeEl = document.getElementById('save-badge');
+      const saveAmountEl = document.getElementById('save-amount');
+      const totalPriceEl = document.getElementById('total-price');
+
+      currentPriceEl.style.transform = 'scale(1.1)';
+      setTimeout(()=>{
+        currentPriceEl.style.transform = 'scale(1)';
+      },200);
+      console.log('current vairent inside the update price display ', currentVariant)
+
+      currentPriceEl.textContent = currentVariant.formatted_price;
+      // Handling the compared price 
+      if(currentPriceEl.compare_at_price > currentVariant.price)
+      comparePriceEl.style.display = 'display';
+
+      const totalAmount = parseInt(currentVariant.price) * parseInt(currentQuantity);
+      totalPriceEl.textContent = formatMoney(totalAmount);
+       totalPriceEl.style.transform = 'scale(1.05)';
+      setTimeout(() => {
+        totalPriceEl.style.transform = 'scale(1)';
+      }, 150);
+
+    }
+
+    {% comment %} /**
+   * Format money amount (simple version)
+   */ {% endcomment %}
+  function formatMoney(cents) {
+    return '{{ shop.money_format }}'.replace(/\{\{\s*amount\s*\}\}/, (cents / 100).toFixed(2));
+  }
 
   {% comment %}
        * Change main product image when thumbnail is clicked
