@@ -52,7 +52,7 @@
 
     <!-- Desktop Cart/Login -->
     <div class="hidden md:flex items-center space-x-4">
-      <a href="{{ routes.cart_url }}" class="text-green-50 hover:text-green-200">Cart</a>
+      <a href="{{ routes.cart_url }}" class="text-green-50 hover:text-green-200 cart-count">Cart <span>{{ cart.item_count }} </span></a>
       {% if shop.customer_accounts_enabled %}
         <a href="{{ routes.account_login_url }}" class="text-green-50 hover:text-green-200">Login</a>
       {% endif %}

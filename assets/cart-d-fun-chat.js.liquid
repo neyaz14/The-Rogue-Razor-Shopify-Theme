@@ -1,0 +1,135 @@
+// 🧠 Show cart drawer
+function openCartDrawer() {
+  document.querySelector('.cart-drawer').classList.add('cart-drawer--active');
+}
+
+// 🧠 Close cart drawer
+function closeCartDrawer() {
+  document.querySelector('.cart-drawer').classList.remove('cart-drawer--active');
+}
+
+// 🧠 Fetch current cart data (JSON)
+async function getCart() {
+  const res = await fetch('/cart.js');
+  return await res.json();
+}
+
+// 🧠 Render cart drawer using fetched data
+async function renderCartDrawer() {
+  const cart = await getCart();
+
+  const drawer = document.querySelector('.cart-drawer');
+  const itemCount = cart.item_count;
+  const itemsHTML = cart.items.map(item => {
+    return `
+      <div class="cart-drawer-item" data-line-item-key="${item.key}">
+        <div class="cart-drawer-item-image">
+          <img src="${item.image}" alt="${item.title}" width="120" height="120">
+        </div>
+        <div class="cart-drawer-item-main">
+          <div class="cart-drawer-item-main-flex">
+            <div class="cart-drawer-item-main-flex-left">
+              <h3><a href="${item.url}">${item.product_title}</a></h3>
+              <span>${item.variant_title}</span>
+              <div class="cart-drawer-quantity-selector">
+                <button class="cart-drawer-quantity-selector-minus" type="button" data-key="${item.key}">-</button>
+                <input type="text" readonly value="${item.quantity}">
+                <button class="cart-drawer-quantity-selector-plus" type="button" data-key="${item.key}">+</button>
+              </div>
+            </div>
+            <div class="cart-drawer-item-main-flex-right">
+              <span>${Shopify.formatMoney(item.final_line_price)}</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    `;
+  }).join('');
+
+  const subtotalHTML = `
+    <div class="cart-drawer-footer-row">
+      <h3>Subtotal</h3>
+      <span>${Shopify.formatMoney(cart.total_price)}</span>
+    </div>
+  `;
+
+  drawer.querySelector('.cart-drawer-header-right-items').textContent = `${itemCount} items`;
+  drawer.querySelector('.cart-drawer-items').innerHTML = itemsHTML;
+  drawer.querySelector('.cart-drawer-footer').innerHTML = subtotalHTML +
+    `<button type="submit" name="checkout" class="cart-drawer-button">Checkout</button>`;
+
+  attachQtyHandlers(); // (Re)bind buttons
+}
+
+// 🧠 Add product to cart
+async function addToCart(form) {
+  await fetch("/cart/add.js", {
+    method: "post",
+    body: new FormData(form)
+  });
+  await renderCartDrawer();
+  openCartDrawer();
+}
+
+// 🧠 Quantity +/- button handlers
+function attachQtyHandlers() {
+  document.querySelectorAll('.cart-drawer-quantity-selector-plus').forEach(btn => {
+    btn.addEventListener('click', async () => {
+      const key = btn.dataset.key;
+      await changeQty(key, +1);
+    });
+  });
+
+  document.querySelectorAll('.cart-drawer-quantity-selector-minus').forEach(btn => {
+    btn.addEventListener('click', async () => {
+      const key = btn.dataset.key;
+      await changeQty(key, -1);
+    });
+  });
+}
+
+// 🧠 Change quantity
+async function changeQty(itemKey, delta) {
+  const cart = await getCart();
+  const item = cart.items.find(i => i.key === itemKey);
+  if (!item) return;
+
+  const newQty = item.quantity + delta;
+  if (newQty <= 0) return;
+
+  await fetch('/cart/change.js', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ id: itemKey, quantity: newQty })
+  });
+
+  await renderCartDrawer();
+}
+
+// 🧠 Form submission handler (add to cart)
+document.querySelectorAll('form[action="/cart/add"]').forEach(form => {
+  form.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    await addToCart(form);
+  });
+});
+
+// 🧠 Open cart via nav link
+document.querySelectorAll('a[href="/cart"]').forEach((a) => {
+  a.addEventListener("click", async (e) => {
+    e.preventDefault();
+    await renderCartDrawer();
+    openCartDrawer();
+  });
+});
+
+// 🧠 Drawer close handlers
+document.querySelectorAll('.cart-drawer-header-right-close, .cart-drawer').forEach(el => {
+  el.addEventListener('click', () => {
+    closeCartDrawer();
+  });
+});
+
+document.querySelector('.cart-drawer-box').addEventListener('click', (e) => {
+  e.stopPropagation();
+});
