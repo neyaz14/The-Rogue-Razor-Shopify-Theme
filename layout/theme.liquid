@@ -11,14 +11,16 @@
     <!-- Header hook for plugins -->
     {{ 'application.css' | asset_url | stylesheet_tag }}
     {{ 'application.js' | asset_url | script_tag }}
-     <script defer src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js"></script>
-
+    <script defer src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js"></script>
   </head>
   <body>
     <main role="main">
       {% section 'announcmentBar' %}
       {% section 'navbar' %}
       {{ content_for_layout }}
+
+      {% section 'cart-drawer' %}
+    {{ 'cart-drawer-functions.js' | asset_url | script_tag }}
     </main>
   </body>
 </html>

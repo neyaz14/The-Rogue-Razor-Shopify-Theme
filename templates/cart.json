@@ -1,8 +1,8 @@
 {
     "sections":{
-        "drawer":{
-            "type":"cart-drawer"
+        "template":{
+            "type":"cart-template"
         }
     },
-    "order":["drawer"]
+    "order":["template"]
 }  
