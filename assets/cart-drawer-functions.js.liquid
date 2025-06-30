@@ -1,0 +1,76 @@
+function openCartDrawer() {
+    document.querySelector('.cart-drawer').classList.add('cart-drawer--active');
+};
+
+
+
+// Update cart
+async function updateCartDrawer() {
+    const res = await fetch('/?section_id=cart-drawer');
+    const text = await res.text(); // get raw HTML string
+    // console.log(text)
+    // parsing the html 
+    const parsedHTML = new DOMParser().parseFromString(text, 'text/html');
+    const newCartDrawer = parsedHTML.querySelector('.cart-drawer');
+    const currentCartDrawer = document.querySelector('.cart-drawer');
+
+    if(newCartDrawer && currentCartDrawer){
+        currentCartDrawer.innerHTML = newCartDrawer.innerHTML;
+    }
+
+
+}
+
+
+
+document.querySelectorAll('form[action="/cart/add"]').forEach(form => {
+
+    form.addEventListener('submit', async (e) => {
+        e.preventDefault();
+
+        // submit form with ajax
+        await fetch("/cart/add", {
+            method: "post",
+            body: new FormData(form)
+        })
+
+        // update cart
+        await updateCartDrawer()
+
+
+
+
+
+
+
+
+
+        // cart drawer open 
+        openCartDrawer();
+
+
+
+
+    })
+})
+
+// close cart drawer
+document.querySelectorAll('.cart-drawer-header-right-close, .cart-drawer').forEach((el) => {
+    el.addEventListener('click', (e) => {
+        document.querySelector('.cart-drawer').classList.remove('cart-drawer--active');
+    })
+})
+
+document.querySelector('.cart-drawer-box').addEventListener('click', (e) => {
+    e.stopPropagation()
+});
+
+
+//
+
+document.querySelectorAll('a[href="/cart"]').forEach((a) => {
+    a.addEventListener("click", (e) => {
+        e.preventDefault();
+        openCartDrawer();
+    });
+});
