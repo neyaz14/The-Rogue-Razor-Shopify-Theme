@@ -1,0 +1,64 @@
+function openCartDrawer() {
+    document.querySelector('.cart-drawer').classList.add('cart-drawer--active');
+};
+
+function closeCartDrawer() {
+
+    document.querySelectorAll('.cart-drawer-header-right-close, .cart-drawer').forEach((el) => {
+        el.addEventListener('click', (e) => {
+            document.querySelector('.cart-drawer').classList.remove('cart-drawer--active');
+        })
+    })
+}
+closeCartDrawer();
+
+function stopPropagation() {
+    document.querySelector('.cart-drawer-box').addEventListener('click', (e) => {
+        e.stopPropagation()
+    });
+
+}
+
+document.querySelectorAll('a[href="/cart"]').forEach(element => {
+    element.addEventListener(('click'), e => {
+        e.preventDefault();
+        openCartDrawer();
+    })
+})
+
+
+
+async function updateCartDrawer() {
+    const res = await fetch('/?section_id=cart-drawer');
+    const text = await res.text();
+    const parsedHTML = new DOMParser().parseFromString(text, 'text/html');
+    const newCartDrawer = parsedHTML.querySelector('.cart-drawer');
+    const currentCartDrawer = document.querySelector('.cart-drawer');
+
+    if (newCartDrawer && currentCartDrawer) {
+        currentCartDrawer.innerHTML = newCartDrawer.innerHTML;
+    }
+    stopPropagation()
+}
+
+
+document.querySelectorAll('form[action="/cart/add"]').forEach(form => {
+    console.log(form)
+    form.addEventListener('submit', async e => {
+
+        e.preventDefault();
+
+        // ajax - add product in cart
+        await fetch('/cart/add', {
+            method: 'post',
+            body: new FormData(form)
+        });
+
+        // const res = await fetch("/cart.js")
+
+        openCartDrawer();
+        updateCartDrawer();
+
+
+    })
+})

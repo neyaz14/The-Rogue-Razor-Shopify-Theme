@@ -5,7 +5,6 @@ function openCartDrawer() {
 
 function updateCartItemCounts(count) {
     const countNum = document.querySelector(".cart-count span");
-
     countNum.textContent = count;
     if (countNum) {
         countNum.classList.add('bump');
@@ -85,8 +84,6 @@ function addCartDrawerEventListeners() {
 }
 
 
-
-
 document.querySelectorAll('form[action="/cart/add"]').forEach(form => {
 
     form.addEventListener('submit', async (e) => {
@@ -98,8 +95,6 @@ document.querySelectorAll('form[action="/cart/add"]').forEach(form => {
             body: new FormData(form)
         })
 
-
-
         // Get cart count
         const res = await fetch("/cart.js");
         const cart = await res.json();
@@ -109,9 +104,6 @@ document.querySelectorAll('form[action="/cart/add"]').forEach(form => {
         await updateCartDrawer()
         // cart drawer open 
         openCartDrawer();
-
-
-
 
     })
 })

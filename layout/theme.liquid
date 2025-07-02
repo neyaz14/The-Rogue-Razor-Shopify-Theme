@@ -10,7 +10,7 @@
     {{ content_for_header }}
     <!-- Header hook for plugins -->
     {{ 'application.css' | asset_url | stylesheet_tag }}
-    {{ 'application.js' | asset_url | script_tag }}
+    {{ 'application.js' | asset_url | script_tag defer }}
     <script defer src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js"></script>
   </head>
   <body>
@@ -20,7 +20,8 @@
       {{ content_for_layout }}
 
       {% section 'cart-drawer' %}
-    {{ 'cart-drawer-functions.js' | asset_url | script_tag }}
+    {% comment %} {{ 'cart-drawer-functions.js' | asset_url | script_tag  }} {% endcomment %}
+    {{ 'cart-d-f-new.js' | asset_url | script_tag  }}
     </main>
   </body>
 </html>
