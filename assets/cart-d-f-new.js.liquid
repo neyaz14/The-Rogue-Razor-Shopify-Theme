@@ -1,0 +1,379 @@
+// Global variable to track newly added items
+let newlyAddedItemKeys = new Set();
+console.log(newlyAddedItemKeys)
+
+function openCartDrawer() {
+    document.querySelector('.cart-drawer').classList.add('cart-drawer--active');
+}
+
+function closeCartDrawer() {
+    document.querySelector('.cart-drawer').classList.remove('cart-drawer--active');
+}
+
+document.querySelectorAll('.cart-drawer-header-right-close, .cart-drawer').forEach((el) => {
+    el.addEventListener('click', (e) => {
+        closeCartDrawer();
+    })
+})
+
+function stopPropagation() {
+    document.querySelector('.cart-drawer-box').addEventListener('click', (e) => {
+        e.stopPropagation()
+    });
+}
+
+stopPropagation();
+document.querySelectorAll('a[href="/cart"]').forEach(element => {
+    element.addEventListener(('click'), e => {
+        e.preventDefault();
+        openCartDrawer();
+    })
+})
+
+// Updated cart drawer function with new item highlighting
+async function updateCartDrawerOptimized(highlightNewItems = false) {
+    try {
+        const res = await fetch('/cart.js');
+        const cart = await res.json();
+        
+        // 1️⃣ Update cart item count (top corner)
+        const countNum = document.querySelector(".cart-count span");
+        if (countNum) {
+            countNum.textContent = cart.item_count;
+            countNum.classList.add('bump');
+            setTimeout(() => countNum.classList.remove('bump'), 300);
+        }
+        
+        // 2️⃣ Update total item count text inside drawer header
+        const itemCountEl = document.querySelector('.cart-drawer-header-right-items');
+        if (itemCountEl) {
+            itemCountEl.textContent = `${cart.item_count} items`;
+        }
+        
+        // 3️⃣ Update subtotal
+        const subtotalEl = document.querySelector('.cart-drawer-footer-row:last-child span');
+        if (subtotalEl) {
+            subtotalEl.textContent = cart.total_price;
+        }
+        
+        // 4️⃣ Get container for cart items
+        const cartItemsContainer = document.querySelector('.cart-drawer-items');
+        const currentItems = new Set();
+        
+        // 5️⃣ Update existing items and add new ones
+        cart.items.forEach(item => {
+            currentItems.add(item.key);
+            console.log('currentItems after adding keys', currentItems)
+            let itemEl = document.querySelector(`[data-line-item-key="${item.key}"]`);
+            console.log('itemEl --what is this ? ', itemEl)
+            // ! how this logic works?
+            if (!itemEl) {
+                // Create new item element
+                //  check the function createCartElement();
+                itemEl = createCartItemElement(item);
+                cartItemsContainer.appendChild(itemEl);
+                
+                // Add to newly added set for highlighting
+                newlyAddedItemKeys.add(item.key);
+                console.log(newlyAddedItemKeys)
+            } else {
+                // Update existing item
+                updateExistingCartItem(itemEl, item);
+            }
+            
+            // Highlight if this item was just added
+            if (highlightNewItems && newlyAddedItemKeys.has(item.key)) {
+                itemEl.classList.add('newly-added');
+                setTimeout(() => {
+                    itemEl.classList.remove('newly-added');
+                    newlyAddedItemKeys.delete(item.key);
+                }, 3000);
+            }
+        });
+        
+        // 6️⃣ Remove items that are no longer in cart
+        document.querySelectorAll('[data-line-item-key]').forEach(itemEl => {
+            const key = itemEl.getAttribute('data-line-item-key');
+            if (!currentItems.has(key)) {
+                itemEl.remove();
+            }
+        });
+        
+        // 7️⃣ Handle discounts
+        const discountRow = document.querySelector('.cart-drawer-footer-row:first-child');
+        if (cart.total_discounts && cart.total_discounts > 0) {
+            if (discountRow && discountRow.querySelector('h3').textContent === 'Discounts') {
+                discountRow.querySelector('span').textContent = cart.total_discounts;
+            }
+        }
+        
+        // 8️⃣ Update empty cart state
+        const emptyCartMessage = document.querySelector('.cart-drawer-empty');
+        const cartFooter = document.querySelector('.cart-drawer-footer');
+        
+        if (cart.item_count === 0) {
+            if (!emptyCartMessage) {
+                cartItemsContainer.innerHTML = '<p class="cart-drawer-empty">Your cart is empty</p>';
+            }
+            if (cartFooter) cartFooter.style.display = 'none';
+        } else {
+            if (emptyCartMessage) emptyCartMessage.remove();
+            if (cartFooter) cartFooter.style.display = 'block';
+        }
+        
+        // Re-attach event listeners
+        attachQuantityListeners();
+        stopPropagation();
+        
+    } catch (err) {
+        console.error('Failed to update cart drawer:', err);
+    }
+}
+
+// Helper function to create new cart item element
+function createCartItemElement(item) {
+    const itemEl = document.createElement('div');
+    itemEl.className = 'cart-drawer-item';
+    itemEl.setAttribute('data-line-item-key', item.key);
+    
+    itemEl.innerHTML = `
+        <div class="cart-drawer-item-image">
+            <img src="${item.featured_image?.url || item.image}" alt="${item.product_title}" width="200" height="200">
+        </div>
+        <div class="cart-drawer-item-main">
+            <div class="cart-drawer-item-main-flex">
+                <div class="cart-drawer-item-main-flex-left">
+                    <h3>
+                        <a href="${item.url}">${item.product_title}</a>
+                    </h3>
+                    ${item.variant_title ? `<span>${item.variant_title}</span>` : ''}
+                    <div class="cart-drawer-quantity-selector">
+                        <button class="cart-drawer-quantity-selector-minus" type="button" data-key="${item.key}">
+                            -
+                        </button>
+                        <input type="text" readonly value="${item.quantity}">
+                        <button class="cart-drawer-quantity-selector-plus" type="button" data-key="${item.key}">
+                            +
+                        </button>
+                    </div>
+                </div>
+                <div class="cart-drawer-item-main-flex-right">
+                    <span>${item.final_line_price}</span>
+                </div>
+            </div>
+        </div>
+    `;
+    
+    return itemEl;
+}
+
+// Helper function to update existing cart item
+function updateExistingCartItem(itemEl, item) {
+    // Update quantity
+    const quantityInput = itemEl.querySelector('input');
+    if (quantityInput) {
+        quantityInput.value = item.quantity;
+    }
+    
+    // Update price
+    const priceEl = itemEl.querySelector('.cart-drawer-item-main-flex-right span');
+    if (priceEl) {
+        priceEl.textContent = item.final_line_price;
+    }
+    
+    // Update image if needed
+    const imageEl = itemEl.querySelector('img');
+    if (imageEl && item.featured_image?.url) {
+        imageEl.src = item.featured_image.url;
+    }
+}
+
+// Function to handle quantity changes
+async function updateQuantity(key, newQuantity) {
+    try {
+        await fetch('/cart/change.js', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                id: key,
+                quantity: newQuantity
+            })
+        });
+        
+        await updateCartDrawerOptimized(false);
+    } catch (error) {
+        console.error('Error updating quantity:', error);
+    }
+}
+
+// Attach quantity selector event listeners
+function attachQuantityListeners() {
+    document.querySelectorAll('.cart-drawer-quantity-selector-plus').forEach(button => {
+        button.addEventListener('click', async (e) => {
+            const key = e.target.getAttribute('data-key');
+            const input = e.target.parentElement.querySelector('input');
+            const newQuantity = parseInt(input.value) + 1;
+            await updateQuantity(key, newQuantity);
+        });
+    });
+    
+    document.querySelectorAll('.cart-drawer-quantity-selector-minus').forEach(button => {
+        button.addEventListener('click', async (e) => {
+            const key = e.target.getAttribute('data-key');
+            const input = e.target.parentElement.querySelector('input');
+            const currentQuantity = parseInt(input.value);
+            if (currentQuantity > 1) {
+                const newQuantity = currentQuantity - 1;
+                await updateQuantity(key, newQuantity);
+            } else if (currentQuantity === 1) {
+                // Remove item from cart
+                await updateQuantity(key, 0);
+            }
+        });
+    });
+}
+
+// Your existing updateCartDrawer function (keeping as fallback)
+async function updateCartDrawer() {
+    const res = await fetch('/?section_id=cart-drawer');
+    const text = await res.text();
+    const parsedHTML = new DOMParser().parseFromString(text, 'text/html');
+    const newCartDrawer = parsedHTML.querySelector('.cart-drawer');
+    const currentCartDrawer = document.querySelector('.cart-drawer');
+
+    if (newCartDrawer && currentCartDrawer) {
+        currentCartDrawer.innerHTML = newCartDrawer.innerHTML;
+    }
+    stopPropagation()
+}
+
+// Modified form submission handler
+document.querySelectorAll('form[action="/cart/add"]').forEach(form => {
+    form.addEventListener('submit', async e => {
+        e.preventDefault();
+
+        try {
+            // Get form data to identify what's being added
+            const formData = new FormData(form);
+            
+            // Add product to cart - Use the .js endpoint for JSON response
+            const response = await fetch('/cart/add.js', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Accept': 'application/json'
+                },
+                body: JSON.stringify({
+                    items: [{
+                        id: formData.get('id'),
+                        quantity: parseInt(formData.get('quantity') || '1'),
+                        properties: Object.fromEntries(
+                            Array.from(formData.entries())
+                                .filter(([key]) => key.startsWith('properties['))
+                                .map(([key, value]) => [key.replace('properties[', '').replace(']', ''), value])
+                        )
+                    }]
+                })
+            });
+            
+            if (response.ok) {
+                const result = await response.json();
+                console.log('Added to cart:', result);
+                
+                // Open cart drawer
+                openCartDrawer();
+                
+                // Update cart drawer with highlighting for new items
+                await updateCartDrawerOptimized(true);
+                
+                // Optional: Show success message
+                showAddToCartSuccess();
+            } else {
+                // Handle error response
+                const errorData = await response.json().catch(() => null);
+                if (errorData && errorData.message) {
+                    showAddToCartError(errorData.message);
+                } else {
+                    throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+                }
+            }
+            
+        } catch (error) {
+            console.error('Error adding to cart:', error);
+            
+            // Show error message to user
+            showAddToCartError('Failed to add item to cart. Please try again.');
+            
+            // Fallback to original method as last resort
+            try {
+                await fetch('/cart/add', {
+                    method: 'POST',
+                    body: new FormData(form)
+                });
+                openCartDrawer();
+                updateCartDrawer();
+                showAddToCartSuccess();
+            } catch (fallbackError) {
+                console.error('Fallback method also failed:', fallbackError);
+                showAddToCartError('Unable to add item to cart. Please refresh and try again.');
+            }
+        }
+    });
+});
+
+// Optional: Show success message when item is added
+function showAddToCartSuccess() {
+    const successMessage = document.createElement('div');
+    successMessage.className = 'cart-success-message';
+    successMessage.textContent = 'Item added to cart!';
+    successMessage.style.cssText = `
+        position: fixed;
+        top: 20px;
+        right: 20px;
+        background: #4CAF50;
+        color: white;
+        padding: 10px 20px;
+        border-radius: 5px;
+        z-index: 10000;
+        animation: slideIn 0.3s ease-out;
+    `;
+    
+    document.body.appendChild(successMessage);
+    
+    setTimeout(() => {
+        successMessage.remove();
+    }, 3000);
+}
+
+// Show error message when add to cart fails
+function showAddToCartError(message) {
+    const errorMessage = document.createElement('div');
+    errorMessage.className = 'cart-error-message';
+    errorMessage.textContent = message;
+    errorMessage.style.cssText = `
+        position: fixed;
+        top: 20px;
+        right: 20px;
+        background: #f44336;
+        color: white;
+        padding: 10px 20px;
+        border-radius: 5px;
+        z-index: 10000;
+        animation: slideIn 0.3s ease-out;
+        max-width: 300px;
+        word-wrap: break-word;
+    `;
+    
+    document.body.appendChild(errorMessage);
+    
+    setTimeout(() => {
+        errorMessage.remove();
+    }, 5000);
+}
+
+// Initialize quantity listeners on page load
+document.addEventListener('DOMContentLoaded', () => {
+    attachQuantityListeners();
+});

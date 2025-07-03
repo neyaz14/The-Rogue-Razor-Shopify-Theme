@@ -3,6 +3,15 @@ function openCartDrawer() {
 };
 
 
+function updateCartItemCounts(count) {
+    const countNum = document.querySelector(".cart-count span");
+    countNum.textContent = count;
+    if (countNum) {
+        countNum.classList.add('bump');
+        setTimeout(() => countNum.classList.remove('bump'), 300);
+    }
+}
+
 
 // Update cart
 async function updateCartDrawer() {
@@ -14,13 +23,65 @@ async function updateCartDrawer() {
     const newCartDrawer = parsedHTML.querySelector('.cart-drawer');
     const currentCartDrawer = document.querySelector('.cart-drawer');
 
-    if(newCartDrawer && currentCartDrawer){
+    if (newCartDrawer && currentCartDrawer) {
         currentCartDrawer.innerHTML = newCartDrawer.innerHTML;
     }
 
+    addCartDrawerEventListeners();
 
 }
 
+
+
+function addCartDrawerEventListeners() {
+    // update quantites
+    document.querySelectorAll('.cart-drawer-quantity-selector button').forEach(
+        (btn) => {
+
+            btn.addEventListener('click', async () => {
+                // get line item key 
+                const rootItem = btn.parentElement.parentElement.parentElement.parentElement.parentElement;
+                console.log(rootItem);
+                const key = rootItem.getAttribute("data-line-item-key");
+
+
+                // get new quantity 
+                const currentQantity = Number(btn.parentElement.querySelector("input").value);
+                const isUp = btn.classList.contains("cart-drawer-quantity-selector-plus");
+                const newQuantity = isUp ? currentQantity + 1 : currentQantity - 1;
+
+
+                console.log(currentQantity, isUp, newQuantity, key)
+                // ajax update
+                const res = await fetch("/cart/update.js", {
+                    method: "post",
+                    headers: {
+                        Accept: "application/json",
+                        "Content-Type": "application/json",
+                    },
+                    body: JSON.stringify({ updates: { [key]: newQuantity } }),
+                });
+                const cart = await res.json();
+
+                console.log(cart)
+
+                // update cart
+                updateCartDrawer();
+
+                updateCartItemCounts(cart.item_count);
+
+
+            })
+
+        }
+    )
+
+
+    document.querySelector('.cart-drawer-box').addEventListener('click', (e) => {
+        e.stopPropagation()
+    });
+
+}
 
 
 document.querySelectorAll('form[action="/cart/add"]').forEach(form => {
@@ -34,22 +95,15 @@ document.querySelectorAll('form[action="/cart/add"]').forEach(form => {
             body: new FormData(form)
         })
 
+        // Get cart count
+        const res = await fetch("/cart.js");
+        const cart = await res.json();
+        updateCartItemCounts(cart.item_count);
+
         // update cart
         await updateCartDrawer()
-
-
-
-
-
-
-
-
-
         // cart drawer open 
         openCartDrawer();
-
-
-
 
     })
 })
@@ -66,7 +120,7 @@ document.querySelector('.cart-drawer-box').addEventListener('click', (e) => {
 });
 
 
-//
+addCartDrawerEventListeners();
 
 document.querySelectorAll('a[href="/cart"]').forEach((a) => {
     a.addEventListener("click", (e) => {

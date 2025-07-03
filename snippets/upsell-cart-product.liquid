@@ -1,0 +1,33 @@
+<section>
+  <div class="upsell-products px-4 py-6 border-t border-gray-200">
+    <h3 class="text-lg font-semibold mb-4">You may also like</h3>
+
+    <div class="flex  max-h-72 overflow-y-hidden overflow-x-auto scroll-smooth   gap-2 ">
+      {% assign upsell_products = collections.all.products | where: 'available', true %}
+      {% for product in upsell_products limit: 4 %}
+        <div class="bg-white p-2 rounded-lg shadow-sm border shrink-0">
+          <a href="{{ product.url }}">
+            <img
+              src="{{ product.featured_image | image_url: width: 75 }}"
+              alt="{{ product.title }}"
+              class="rounded mb-2 w-full h-auto object-cover"
+              width="75"
+              height="75"
+            >
+            <p class="text-sm font-medium text-gray-800">{{ product.title }}</p>
+            <p class="text-sm text-gray-500">{{ product.price | money }}</p>
+          </a>
+          <form method="post" action="{{ routes.cart_add_url }}" class="mt-2">
+            <input type="hidden" name="id" value="{{ product.variants.first.id }}">
+            <button
+              type="submit"
+              class="w-full bg-black text-white text-sm py-1.5 rounded hover:bg-gray-800 transition"
+            >
+              Add to Cart
+            </button>
+          </form>
+        </div>
+      {% endfor %}
+    </div>
+  </div>
+</section>

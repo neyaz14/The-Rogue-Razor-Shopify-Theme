@@ -20,10 +20,14 @@
       {% else %}
         <div class="cart-drawer-items">
           {% for item in cart.items %}
+
             <div class="cart-drawer-item" data-line-item-key="{{ item.key }}">
+              {% comment %} image  ---   {% endcomment %}
               <div class="cart-drawer-item-image">
                 <img src="{{ item.image | image_url: width: 200 }}" alt="{{ item.title }}" width="200" height="200">
               </div>
+
+              {% comment %} each item card  {% endcomment %}
               <div class="cart-drawer-item-main">
                 <div class="cart-drawer-item-main-flex">
                   <div class="cart-drawer-item-main-flex-left">
@@ -48,9 +52,18 @@
                   </div>
                 </div>
               </div>
+
+
+
             </div>
           {% endfor %}
         </div>
+
+
+        {% comment %} <div class="upsell_drawer">
+            {% render 'upsell-cart-product' %}
+        </div> {% endcomment %}
+
 
         <footer class="cart-drawer-footer">
           {% if cart.total_discounts > 0 %}
@@ -67,6 +80,8 @@
         </footer>
       {% endif %}
     {% endform %}
+
+
   </div>
 </div>
 
@@ -89,7 +104,7 @@
     display: flex;
     flex-direction: column;
     padding: 24px;
-    transition: left 0s 0.2s, opacity 0.2s;
+    transition: left 0s 0.1s , opacity 0.1s;
   }
 
   .cart-drawer--active {
@@ -107,7 +122,7 @@
     display: flex;
     flex-direction: column;
     overflow: auto;
-    transition: 0.2s opacity, 0.2s transform;
+    transition: 0.1s opacity, 0.1s transform;
     opacity: 0;
     transform: translateX(40px);
   }
@@ -293,4 +308,126 @@
     margin: auto;
     color: #212529;
   }
+
+  /* Animation for newly added cart items */
+.cart-drawer-item.newly-added {
+    animation: highlightNewItem 3s ease-in-out;
+    position: relative;
+    overflow: hidden;
+}
+
+.cart-drawer-item.newly-added::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(76, 175, 80, 0.3), transparent);
+    animation: shimmer 2s ease-in-out;
+    z-index: 1;
+}
+
+@keyframes highlightNewItem {
+    0% {
+        background-color: rgba(76, 175, 80, 0.1);
+        border-left: 4px solid #4CAF50;
+        transform: scale(1.02);
+    }
+    50% {
+        background-color: rgba(76, 175, 80, 0.05);
+        border-left: 4px solid #4CAF50;
+    }
+    100% {
+        background-color: transparent;
+        border-left: none;
+        transform: scale(1);
+    }
+}
+
+@keyframes shimmer {
+    0% {
+        left: -100%;
+    }
+    100% {
+        left: 100%;
+    }
+}
+
+/* Animation for cart count bump */
+.cart-count span.bump {
+    animation: bump 0.3s ease-in-out;
+}
+
+/* Animation for newly added cart items */
+.cart-drawer-item.newly-added {
+    animation: highlightNewItem 3s ease-in-out;
+    position: relative;
+    overflow: hidden;
+}
+
+.cart-drawer-item.newly-added::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(76, 175, 80, 0.3), transparent);
+    animation: shimmer 2s ease-in-out;
+    z-index: 1;
+}
+
+@keyframes highlightNewItem {
+    0% {
+        background-color: rgba(76, 175, 80, 0.1);
+        border-left: 4px solid #4CAF50;
+        transform: scale(1.02);
+    }
+    50% {
+        background-color: rgba(76, 175, 80, 0.05);
+        border-left: 4px solid #4CAF50;
+    }
+    100% {
+        background-color: transparent;
+        border-left: none;
+        transform: scale(1);
+    }
+}
+
+@keyframes shimmer {
+    0% {
+        left: -100%;
+    }
+    100% {
+        left: 100%;
+    }
+}
+
+/* Animation for cart count bump */
+.cart-count span.bump {
+    animation: bump 0.3s ease-in-out;
+}
+
+
+
+/* Loading state for cart updates */
+.cart-drawer-item.updating {
+    opacity: 0.7;
+    pointer-events: none;
+}
+
+.cart-drawer-item.updating::after {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 20px;
+    height: 20px;
+    border: 2px solid #f3f3f3;
+    border-top: 2px solid #4CAF50;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+    transform: translate(-50%, -50%);
+}
 </style>
