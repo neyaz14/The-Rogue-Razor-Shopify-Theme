@@ -1,0 +1,195 @@
+{% comment %} <script > {% endcomment %}
+
+<main class="w-[90%] mx-auto my-7 p-4 product" role="main">
+  <article class="flex flex-col md:flex-row gap-8 items-start width" itemscope itemtype="https://schema.org/Product">
+    {% assign current_variant = product.selected_or_first_available_variant %}
+    {% assign featured_image = current_variant.featured_image | default: product.featured_image %}
+
+    <!-- Product Image & Thumbnails -->
+    <aside class="w-full md:max-w-[500px] product-left mx-auto" aria-label="Product Images">
+      <figure class="w-full aspect-square relative overflow-hidden">
+        <img
+          id="ProductPhotoImg"
+          src="{{ featured_image | image_url: width:500, height:500, crop:'center' }}"
+          alt="{{ featured_image.alt | escape }}"
+          width="500"
+          height="500"
+          class="w-full h-full object-cover rounded-lg shadow-md hover:scale-105 transition-all duration-300 ease-in-out"
+          itemprop="image"
+        >
+      </figure>
+
+      <!-- Thumbnails -->
+      <div class="mt-3 flex gap-2 overflow-x-auto md:overflow-hidden">
+        {% for image in product.images %}
+          <a
+            href="{{ image | image_url: width:500, height:500, crop:'center' }}"
+            class="shrink-0"
+          >
+            <img
+              src="{{ image | image_url: width:160, height:160, crop:'center' }}"
+              alt="{{ image.alt | escape }}"
+              width="80"
+              height="80"
+              class="w-20 h-20 object-cover rounded border hover:border-black transition"
+            >
+          </a>
+        {% endfor %}
+      </div>
+    </aside>
+
+    <!-- Product Info & Form -->
+    <section class="w-full md:w-1/2 space-y-4 product-right mx-auto" aria-label="Product Details">
+      <h1 class="text-2xl font-bold text-gray-800" itemprop="name">{{ product.title }}</h1>
+
+      <div class="product-prices"></div>
+      <p
+        id="ProductPrice"
+        class="text-xl text-gray-700 font-semibold product-price"
+        itemprop="offers"
+        itemscope
+        itemtype="https://schema.org/Offer"
+      >
+        <meta itemprop="priceCurrency" content="{{ shop.currency }}">
+        <span itemprop="price">{{ current_variant.price | money_without_currency }}</span> {{ shop.currency }}
+      </p>
+
+      <div class="text-gray-600 leading-relaxed" itemprop="description">
+        {{ product.description }}
+      </div>
+
+      {% form 'product',
+        product,
+        id: 'AddToCartForm',
+        class: 'space-y-4 pt-4',
+        role: 'form',
+        aria-label: 'Product purchase form'
+      %}
+        <input id="product-id" type="hidden" name="id" value="{{ product.selected_or_first_available_variant.id }}">
+
+        <!-- Variant Selector -->
+        {% if product.variants.size > 1 %}
+          <div class="product-option">
+            {% for option in product.options_with_values %}
+              <fieldset>
+                <legend class="text-2xl font-semibold">{{ option.name }}</legend>
+                <div class="flex gap-2.5 ">
+                  {% for value in option.values %}
+                    <div class="option-varient-class flex flex-wrap gap-1 border rounded-3xl p-3 {{  }}">
+                      <input
+                        {% if option.selected_value == value %}
+                          checked
+                        {% endif %}
+                        type="radio"
+                        name="{{ option.name }}"
+                        value="{{ value }}"
+                        id="{{ option.name }}-{{ value }}"
+                        class="border p-2 rounded-3xl"
+                      >
+                      <label
+                        for="{{ option.name }}-{{ value }}"
+                        class="
+                          inline-block cursor-pointer border rounded-full px-4 py-2 text-sm
+                          peer-checked:bg-black peer-checked:text-white
+                          hover:bg-gray-600 hover:text-white  transition-all ease-in-out duration-300  peer-active:bg-black peer hidden
+                        "
+                      >
+                        {{- value -}}
+                      </label>
+                    </div>
+                  {% endfor %}
+                </div>
+              </fieldset>
+            {% endfor %}
+          </div>
+        {% endif %}
+
+        <!-- Quantity -->
+        <div class="product-option">
+          <label for="quantity" class="block mb-1 font-medium text-gray-700">Quantity</label>
+          <input
+            type="number"
+            id="quantity"
+            name="quantity"
+            value="1"
+            min="1"
+            class="w-full p-2 border border-gray-300 rounded-md focus:ring focus:ring-indigo-300"
+          >
+        </div>
+
+        <!-- Add to Cart Button -->
+        <button
+          type="submit"
+          id="AddToCart"
+          class="product-add w-full bg-black text-white py-3 rounded-md font-semibold hover:bg-gray-800 transition"
+        >
+          Add to bag
+        </button>
+      {% endform %}
+    </section>
+  </article>
+</main>
+
+{% schema %}
+{
+  "name": "Product Details",
+  "tag": "section",
+  "class": "product-section",
+  "settings": [],
+  "presets": [
+    {
+      "name": "Default Product",
+      "category": "Product"
+    }
+  ]
+}
+{% endschema %}
+
+<script>
+    let product = {{ product | json }};
+     console.log("Product -",product);
+
+
+
+
+      document.querySelectorAll('.product-option input[type="radio"]').forEach((radio)=>{
+          radio.addEventListener('change', ()=>{
+              console.log('its changing the radio', radio);
+
+              // First Grab the sellected options
+              let selectedOptions = [];
+              document.querySelectorAll('.product-option input[type="radio"]:checked').forEach((radio)=>{
+                  selectedOptions.push(radio.value);
+              })
+              console.log("Selected Options - ",selectedOptions);
+
+              // Find the varient mathced with selected opton
+
+
+               // we wanna find the matche variant with
+               // So we loop through the product.variant - then check if the selectedOptions array's items is matched with the product.variant array's options array .
+                //  product.variant - array  |  options - array  |  selectedOptions - array
+
+              let matchedVariant = product.variants.find(variant => {
+                  const variantOptions = variant.options;
+                  // Check if every selectedOption exists in variant.options
+                  return selectedOptions.every(opt => variantOptions.includes(opt));
+              });
+               if (!matchedVariant) {
+                alert("Sorry! This combination is not available.");
+                return;
+              }
+              console.log('Product Variant', product.variants)
+              console.log('Matched Product Variant - ',matchedVariant);
+
+
+              // change the form variant id , so that when submitted , the id is needed to add to cart
+              document.querySelector("#product-id").value = matchedVariant.id;
+          })
+      })
+
+
+
+
+     // we will loop through all the inpput radio
+</script>
