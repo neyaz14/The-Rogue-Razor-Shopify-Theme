@@ -10,7 +10,7 @@
     {{ content_for_header }}
     <!-- Header hook for plugins -->
     {{ 'application.css' | asset_url | stylesheet_tag }}
-    {{ 'application.js' | asset_url | script_tag defer }}
+    {{ 'application.js' | asset_url | script_tag }}
     <script defer src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js"></script>
   </head>
   <body>
@@ -25,3 +25,13 @@
     </main>
   </body>
 </html>
+{% comment %}
+
+This file has been rewritten to preserve the original behavior.
+
+---
+Changes:
+- from: "{{ 'application.js' | asset_url | script_tag defer }}"
+  to: "{{ 'application.js' | asset_url | script_tag }}"
+  position: 504..551
+{% endcomment %}
